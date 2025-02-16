@@ -5,7 +5,7 @@ CREATE TABLE `Account` (
 	`provider` text NOT NULL,
 	`providerAccountId` text NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
@@ -14,7 +14,7 @@ CREATE TABLE `Event` (
 	`name` text NOT NULL,
 	`teamId` text NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`description` text,
 	FOREIGN KEY (`teamId`) REFERENCES `Team`(`id`) ON UPDATE cascade ON DELETE restrict
 );
@@ -25,7 +25,7 @@ CREATE TABLE `Photo` (
 	`uploadedById` text NOT NULL,
 	`eventId` text NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`uploadedById`) REFERENCES `User`(`id`) ON UPDATE cascade ON DELETE restrict,
 	FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON UPDATE cascade ON DELETE restrict
 );
@@ -35,9 +35,9 @@ CREATE TABLE `PreUser` (
 	`email` text NOT NULL,
 	`role` text NOT NULL,
 	`token` text NOT NULL,
-	`deleted` numeric NOT NULL,
+	`deleted` integer DEFAULT false NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `Session` (
@@ -53,7 +53,7 @@ CREATE TABLE `Team` (
 	`name` text NOT NULL,
 	`workspaceId` text NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON UPDATE cascade ON DELETE restrict
 );
 --> statement-breakpoint
@@ -63,7 +63,7 @@ CREATE TABLE `TeamMember` (
 	`teamId` text NOT NULL,
 	`role` text DEFAULT 'MEMBER' NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON UPDATE cascade ON DELETE restrict,
 	FOREIGN KEY (`teamId`) REFERENCES `Team`(`id`) ON UPDATE cascade ON DELETE restrict
 );
@@ -74,8 +74,9 @@ CREATE TABLE `User` (
 	`name` text,
 	`password` text,
 	`role` text DEFAULT 'MEMBER' NOT NULL,
+	`deleted` integer DEFAULT false NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `VerificationToken` (
@@ -90,7 +91,7 @@ CREATE TABLE `Workspace` (
 	`name` text NOT NULL,
 	`ownerId` text NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON UPDATE cascade ON DELETE restrict
 );
 --> statement-breakpoint
@@ -99,7 +100,7 @@ CREATE TABLE `WorkspaceMember` (
 	`userId` text NOT NULL,
 	`workspaceId` text NOT NULL,
 	`createdAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`updatedAt` numeric NOT NULL,
+	`updatedAt` numeric DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON UPDATE cascade ON DELETE restrict,
 	FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON UPDATE cascade ON DELETE restrict
 );

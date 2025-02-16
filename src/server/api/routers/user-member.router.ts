@@ -38,11 +38,12 @@ export const userMemberRouter = createTRPCRouter({
       }));
     },
   ),
-  registerMember: publicProcedure
+  preRegisterMember: publicProcedure
     .input(
       z.object({
         email: z.string(),
         role: z.string(),
+        secretKey: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -50,6 +51,7 @@ export const userMemberRouter = createTRPCRouter({
       const preUserRegister = ctx.db.insert(preUser).values({
         email: input.email,
         role: input.role,
+        secretKey: input.secretKey,
         token,
       });
       const userRegister = ctx.db.insert(user).values({

@@ -64,7 +64,7 @@ export default function DialogAddMember({
 	const [dialogOpen, setDialogOpen] = useState(false);
 
 	const { mutateAsync, isPending } =
-		api.userMember.registerMember.useMutation();
+		api.userMember.preRegisterMember.useMutation();
 
 	const form = useForm<RegisterMemberFormType>({
 		resolver: zodResolver(registerMemberFormSchema),

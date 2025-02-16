@@ -1,0 +1,1 @@
+ALTER TABLE `PreUser` ADD `secretKey` text NOT NULL;

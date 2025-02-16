@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2921a2eb-f4fe-47ff-8039-22de542e27bc",
-  "prevId": "4ce3a941-8a84-4c8b-92b3-3ae223fe55fb",
+  "id": "91514d03-ed33-4c57-a365-e9019414902c",
+  "prevId": "5cf278e5-c9ae-4fe1-8f9c-f7302f53a898",
   "tables": {
     "Account": {
       "name": "Account",
@@ -260,6 +260,13 @@
         },
         "token": {
           "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "secretKey": {
+          "name": "secretKey",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -550,6 +557,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'MEMBER'"
+        },
+        "deleted": {
+          "name": "deleted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "createdAt": {
           "name": "createdAt",

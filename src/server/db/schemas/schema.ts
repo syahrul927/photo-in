@@ -1,13 +1,11 @@
-import {
-	sqliteTable,
-	AnySQLiteColumn,
-	uniqueIndex,
-	text,
-	numeric,
-	foreignKey,
-	integer,
-} from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
+import {
+	integer,
+	numeric,
+	sqliteTable,
+	text,
+	uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const user = sqliteTable(
 	"User",
@@ -20,6 +18,7 @@ export const user = sqliteTable(
 		name: text("name"),
 		password: text("password"),
 		role: text("role").default("MEMBER").notNull(),
+		deleted: integer("deleted", { mode: "boolean" }).default(false).notNull(),
 		createdAt: numeric("createdAt")
 			.default(sql`(CURRENT_TIMESTAMP)`)
 			.notNull(),
@@ -252,7 +251,8 @@ export const preUser = sqliteTable(
 		email: text("email").notNull(),
 		role: text("role").notNull(),
 		token: text("token").notNull(),
-		deleted: integer("deleted", { mode: "boolean" }).notNull().default(false),
+		secretKey: text("secretKey").notNull(),
+		deleted: integer("deleted", { mode: "boolean" }).default(false).notNull(),
 		createdAt: numeric("createdAt")
 			.default(sql`(CURRENT_TIMESTAMP)`)
 			.notNull(),
