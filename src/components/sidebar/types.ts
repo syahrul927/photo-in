@@ -7,4 +7,5 @@ export type NavigationType = {
   icon: LucideIcon;
   isActive?: boolean;
   items?: Omit<NavigationType, "code" | "icon">[];
+  hide?: boolean;
 };

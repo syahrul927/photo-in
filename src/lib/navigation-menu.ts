@@ -28,6 +28,11 @@ export const NavigationMainConstant: NavigationType[] = [
         title: "Manage Events",
         url: "/events/manage",
       },
+      {
+        title: "Detail Event",
+        url: "/events/detail",
+        hide: true,
+      },
     ],
   },
 ];
@@ -56,12 +61,12 @@ export const NavigationSettingsConstant: Omit<
   NavigationType,
   "code" | "icon"
 >[] = [
-    {
-      title: "Information",
-      url: "/settings",
-    },
-    {
-      title: "Members",
-      url: "/settings/members",
-    },
-  ];
+  {
+    title: "Information",
+    url: "/settings",
+  },
+  {
+    title: "Members",
+    url: "/settings/members",
+  },
+];

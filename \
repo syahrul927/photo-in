@@ -1,22 +1,20 @@
 "use client";
 
-import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   Calendar,
-  Filter,
-  ImageIcon,
-  MapPin,
-  MoreVertical,
   Search,
+  Filter,
+  MoreVertical,
+  ImageIcon,
   Users,
+  MapPin,
 } from "lucide-react";
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { format } from "date-fns";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -33,28 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 
-interface Avatar {
-  name: string;
-  avatar: string;
-}
-
-interface EventType {
-  id: number;
-  title: string;
-  date: Date;
-  location: string;
-  status: "upcoming" | "in-progress" | "completed";
-  totalPhotos: number;
-  uploadProgress: number;
-  photographer: Avatar;
-  team: Avatar[];
-  type: string;
-  clientName: string;
-}
-
-const events: EventType[] = [
+const events = [
   {
     id: 1,
     title: "Johnson Wedding",
@@ -284,7 +265,7 @@ const events: EventType[] = [
   },
 ];
 
-const statusColors: { [key: string]: string } = {
+const statusColors = {
   upcoming: "bg-blue-500/10 text-blue-500",
   "in-progress": "bg-yellow-500/10 text-yellow-500",
   completed: "bg-green-500/10 text-green-500",
@@ -390,7 +371,7 @@ export default function EventManagePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 * index }}
             >
-              <Link href={"/events/detail/123"}>
+              <Link href={"/events/1234"}>
                 <Card className="overflow-hidden hover:cursor-pointer hover:bg-foreground/10">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
