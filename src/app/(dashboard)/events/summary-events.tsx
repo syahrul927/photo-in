@@ -1,14 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Calendar,
-  Users,
-  HardDrive,
-  ImageIcon,
-  MoreVertical,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,8 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -31,6 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  HardDrive,
+  ImageIcon,
+  MoreVertical,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 import {
   Area,
   AreaChart,
@@ -132,11 +132,11 @@ export default function SummaryEvents() {
               <CardTitle className="text-sm font-medium">
                 Total Events
               </CardTitle>
-              <Calendar className="text-muted-foreground h-4 w-4" />
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">63</div>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 +12% from last month
               </p>
             </CardContent>
@@ -146,11 +146,11 @@ export default function SummaryEvents() {
               <CardTitle className="text-sm font-medium">
                 Total Photos
               </CardTitle>
-              <ImageIcon className="text-muted-foreground h-4 w-4" />
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">12,431</div>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 +8,123 from last month
               </p>
             </CardContent>
@@ -160,11 +160,11 @@ export default function SummaryEvents() {
               <CardTitle className="text-sm font-medium">
                 Team Members
               </CardTitle>
-              <Users className="text-muted-foreground h-4 w-4" />
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">8</div>
-              <p className="text-muted-foreground text-xs">+2 new this month</p>
+              <p className="text-xs text-muted-foreground">+2 new this month</p>
             </CardContent>
           </Card>
           <Card>
@@ -172,11 +172,11 @@ export default function SummaryEvents() {
               <CardTitle className="text-sm font-medium">
                 Storage Used
               </CardTitle>
-              <HardDrive className="text-muted-foreground h-4 w-4" />
+              <HardDrive className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">284.8 GB</div>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 +42.8 GB from last month
               </p>
             </CardContent>
@@ -319,13 +319,13 @@ export default function SummaryEvents() {
                         <p className="text-sm font-medium leading-none">
                           {activity.user}
                         </p>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-sm text-muted-foreground">
                           {activity.action}{" "}
-                          <span className="text-primary font-medium">
+                          <span className="font-medium text-primary">
                             {activity.event}
                           </span>
                         </p>
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-xs text-muted-foreground">
                           {activity.time}
                         </p>
                       </div>

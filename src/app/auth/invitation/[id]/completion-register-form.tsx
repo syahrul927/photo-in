@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -14,11 +15,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useInvitation } from "./invitation-hooks";
+import { useToast } from "@/hooks/use-toast";
 
 const completionRegisterSchema = z
   .object({
@@ -51,8 +54,29 @@ const CompletionRegisterForm = ({
     defaultValues,
     resolver: zodResolver(completionRegisterSchema),
   });
-  const onSubmit = (value: CompletionRegisterType) => {
-    console.log("value", value);
+
+  const { invitation } = useInvitation();
+
+  const { toast } = useToast();
+
+  const { mutateAsync, isPending } =
+    api.registerMember.registerInformationUser.useMutation();
+
+  const onSubmit = async ({ name, password }: CompletionRegisterType) => {
+    const { email, invitationId, secretKey } = invitation;
+    if (!email || !invitationId || !secretKey) return;
+    await mutateAsync({
+      name,
+      password,
+      email,
+      invitationId,
+      secretKey,
+    });
+
+    toast({
+      title: "Registration Successful",
+      description: "The user has been registered successfully.",
+    });
   };
   return (
     <motion.div
@@ -70,72 +94,64 @@ const CompletionRegisterForm = ({
         width: "100%",
       }}
     >
-      <CardHeader className="text-left">
-        <CardTitle className="text-left text-xl">
-          <Button variant={"ghost"} size={"icon"} onClick={previous}>
-            <ArrowLeft className="mr-2" />
-          </Button>
-          Welcome!
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid gap-6">
-              <div className="grid gap-6">
-                <div className="grid gap-2">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <FormField
-                    control={form.control}
-                    name="repassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Re-Password</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="password" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Submit
-                </Button>
-              </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardHeader className="text-left">
+            <CardTitle className="text-start">Register Account</CardTitle>
+            <CardDescription className="text-start">
+              Fill the information below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col space-y-1.5">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="repassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          </form>
-        </Form>
-      </CardContent>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button isLoading={isPending} type="submit">
+              Submit
+            </Button>
+          </CardFooter>
+        </form>
+      </Form>
     </motion.div>
   );
 };

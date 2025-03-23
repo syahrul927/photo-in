@@ -6,9 +6,11 @@ import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
 import SuperJSON from "superjson";
+import { getSession, useSession } from "next-auth/react";
 
 import { type AppRouter } from "@/server/api/root";
 import { createQueryClient } from "./query-client";
+import { CURRENT_WORKSPACE, keyWorkspaceBuilder } from "@/lib/workspace-utils";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
@@ -29,8 +31,7 @@ export const api = createTRPCReact<AppRouter>();
  */
 export type RouterInputs = inferRouterInputs<AppRouter>;
 
-/**
- * Inference helper for outputs.
+/** Inference helper for outputs.
  *
  * @example type HelloOutput = RouterOutputs['example']['hello']
  */
@@ -38,7 +39,6 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
-
   const [trpcClient] = useState(() =>
     api.createClient({
       links: [
@@ -50,14 +50,24 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
         unstable_httpBatchStreamLink({
           transformer: SuperJSON,
           url: getBaseUrl() + "/api/trpc",
-          headers: () => {
+          headers: async () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
+            if (typeof window !== "undefined") {
+              let currentWorkspace = localStorage.getItem(CURRENT_WORKSPACE);
+              if (!currentWorkspace) {
+                const session = await getSession();
+                currentWorkspace =
+                  session?.user.workspaces?.[0]?.keyWorkspace ?? "";
+                localStorage.setItem(CURRENT_WORKSPACE, currentWorkspace);
+              }
+              headers.set(CURRENT_WORKSPACE, currentWorkspace);
+            }
             return headers;
           },
         }),
       ],
-    })
+    }),
   );
 
   return (
@@ -69,7 +79,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
   );
 }
 
-function getBaseUrl() {
+export function getBaseUrl() {
   if (typeof window !== "undefined") return window.location.origin;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return `http://localhost:${process.env.PORT ?? 3000}`;

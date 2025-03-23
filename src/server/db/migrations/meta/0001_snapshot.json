@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "91514d03-ed33-4c57-a365-e9019414902c",
-  "prevId": "5cf278e5-c9ae-4fe1-8f9c-f7302f53a898",
+  "id": "2415e3ea-57e9-4b0a-b8bc-241b5b236019",
+  "prevId": "e1aaf6a9-b937-4d08-972f-cded835a6b81",
   "tables": {
     "Account": {
       "name": "Account",
@@ -104,82 +104,29 @@
           "notNull": true,
           "autoincrement": false
         },
-        "teamId": {
-          "name": "teamId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "Event_teamId_Team_id_fk": {
-          "name": "Event_teamId_Team_id_fk",
-          "tableFrom": "Event",
-          "tableTo": "Team",
-          "columnsFrom": [
-            "teamId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "Photo": {
-      "name": "Photo",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
         },
-        "url": {
-          "name": "url",
+        "location": {
+          "name": "location",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
-        "uploadedById": {
-          "name": "uploadedById",
-          "type": "text",
+        "dateEvent": {
+          "name": "dateEvent",
+          "type": "numeric",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
-        "eventId": {
-          "name": "eventId",
+        "workspaceId": {
+          "name": "workspaceId",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -204,38 +151,25 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "Photo_uploadedById_User_id_fk": {
-          "name": "Photo_uploadedById_User_id_fk",
-          "tableFrom": "Photo",
-          "tableTo": "User",
+        "Event_workspaceId_Workspace_id_fk": {
+          "name": "Event_workspaceId_Workspace_id_fk",
+          "tableFrom": "Event",
+          "tableTo": "Workspace",
           "columnsFrom": [
-            "uploadedById"
+            "workspaceId"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        },
-        "Photo_eventId_Event_id_fk": {
-          "name": "Photo_eventId_Event_id_fk",
-          "tableFrom": "Photo",
-          "tableTo": "Event",
-          "columnsFrom": [
-            "eventId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "PreUser": {
-      "name": "PreUser",
+    "Invitation": {
+      "name": "Invitation",
       "columns": {
         "id": {
           "name": "id",
@@ -258,13 +192,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "token": {
-          "name": "token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "secretKey": {
           "name": "secretKey",
           "type": "text",
@@ -272,13 +199,33 @@
           "notNull": true,
           "autoincrement": false
         },
-        "deleted": {
-          "name": "deleted",
-          "type": "integer",
+        "workspaceId": {
+          "name": "workspaceId",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": false
+          "autoincrement": false
+        },
+        "invitedBy": {
+          "name": "invitedBy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "acceptedAt": {
+          "name": "acceptedAt",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -297,16 +244,208 @@
           "default": "(CURRENT_TIMESTAMP)"
         }
       },
+      "indexes": {},
+      "foreignKeys": {
+        "Invitation_workspaceId_Workspace_id_fk": {
+          "name": "Invitation_workspaceId_Workspace_id_fk",
+          "tableFrom": "Invitation",
+          "tableTo": "Workspace",
+          "columnsFrom": [
+            "workspaceId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Invitation_invitedBy_User_id_fk": {
+          "name": "Invitation_invitedBy_User_id_fk",
+          "tableFrom": "Invitation",
+          "tableTo": "User",
+          "columnsFrom": [
+            "invitedBy"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "Membership": {
+      "name": "Membership",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspaceId": {
+          "name": "workspaceId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "keyWorkspace": {
+          "name": "keyWorkspace",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
       "indexes": {
-        "PreUser_email_key": {
-          "name": "PreUser_email_key",
+        "key_workspace_unique": {
+          "name": "key_workspace_unique",
           "columns": [
-            "email"
+            "keyWorkspace"
           ],
           "isUnique": true
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "Membership_userId_User_id_fk": {
+          "name": "Membership_userId_User_id_fk",
+          "tableFrom": "Membership",
+          "tableTo": "User",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Membership_workspaceId_Workspace_id_fk": {
+          "name": "Membership_workspaceId_Workspace_id_fk",
+          "tableFrom": "Membership",
+          "tableTo": "Workspace",
+          "columnsFrom": [
+            "workspaceId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Membership_userId_workspaceId_pk": {
+          "columns": [
+            "userId",
+            "workspaceId"
+          ],
+          "name": "Membership_userId_workspaceId_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "Photo": {
+      "name": "Photo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eventId": {
+          "name": "eventId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metaData": {
+          "name": "metaData",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "uploadedBy": {
+          "name": "uploadedBy",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Photo_eventId_Event_id_fk": {
+          "name": "Photo_eventId_Event_id_fk",
+          "tableFrom": "Photo",
+          "tableTo": "Event",
+          "columnsFrom": [
+            "eventId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Photo_uploadedBy_User_id_fk": {
+          "name": "Photo_uploadedBy_User_id_fk",
+          "tableFrom": "Photo",
+          "tableTo": "User",
+          "columnsFrom": [
+            "uploadedBy"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -369,156 +508,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "Team": {
-      "name": "Team",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "workspaceId": {
-          "name": "workspaceId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "Team_workspaceId_Workspace_id_fk": {
-          "name": "Team_workspaceId_Workspace_id_fk",
-          "tableFrom": "Team",
-          "tableTo": "Workspace",
-          "columnsFrom": [
-            "workspaceId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "TeamMember": {
-      "name": "TeamMember",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "teamId": {
-          "name": "teamId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'MEMBER'"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        }
-      },
-      "indexes": {
-        "TeamMember_userId_teamId_key": {
-          "name": "TeamMember_userId_teamId_key",
-          "columns": [
-            "userId",
-            "teamId"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {
-        "TeamMember_userId_User_id_fk": {
-          "name": "TeamMember_userId_User_id_fk",
-          "tableFrom": "TeamMember",
-          "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        },
-        "TeamMember_teamId_Team_id_fk": {
-          "name": "TeamMember_teamId_Team_id_fk",
-          "tableFrom": "TeamMember",
-          "tableTo": "Team",
-          "columnsFrom": [
-            "teamId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "User": {
       "name": "User",
       "columns": {
@@ -529,18 +518,18 @@
           "notNull": true,
           "autoincrement": false
         },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
           "autoincrement": false
         },
         "password": {
@@ -550,16 +539,16 @@
           "notNull": false,
           "autoincrement": false
         },
-        "role": {
-          "name": "role",
-          "type": "text",
+        "deleted": {
+          "name": "deleted",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'MEMBER'"
+          "default": false
         },
-        "deleted": {
-          "name": "deleted",
+        "isActive": {
+          "name": "isActive",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -658,6 +647,20 @@
           "notNull": true,
           "autoincrement": false
         },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "ownerId": {
           "name": "ownerId",
           "type": "text",
@@ -690,88 +693,6 @@
           "tableTo": "User",
           "columnsFrom": [
             "ownerId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "WorkspaceMember": {
-      "name": "WorkspaceMember",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "workspaceId": {
-          "name": "workspaceId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        }
-      },
-      "indexes": {
-        "WorkspaceMember_userId_workspaceId_key": {
-          "name": "WorkspaceMember_userId_workspaceId_key",
-          "columns": [
-            "userId",
-            "workspaceId"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {
-        "WorkspaceMember_userId_User_id_fk": {
-          "name": "WorkspaceMember_userId_User_id_fk",
-          "tableFrom": "WorkspaceMember",
-          "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        },
-        "WorkspaceMember_workspaceId_Workspace_id_fk": {
-          "name": "WorkspaceMember_workspaceId_Workspace_id_fk",
-          "tableFrom": "WorkspaceMember",
-          "tableTo": "Workspace",
-          "columnsFrom": [
-            "workspaceId"
           ],
           "columnsTo": [
             "id"

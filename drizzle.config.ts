@@ -8,13 +8,14 @@ const dbCredentials: { url: string; authToken?: string } = {
 };
 
 export default {
+  out: "./src/server/db/migrations/",
   schema: [
     "./src/server/db/schemas/schema.ts",
     "./src/server/db/schemas/relations.ts",
   ],
-  out: "./drizzle/migrations/",
   dialect: "sqlite",
   dbCredentials,
   driver: "turso",
   verbose: true,
+  breakpoints: true,
 } satisfies Config;

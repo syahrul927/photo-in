@@ -13,6 +13,8 @@ import { ZodError } from "zod";
 
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
+import { getWorkspaceHeader } from "@/lib/workspace-utils";
+import { workspace } from "../db/schemas/schema";
 
 /**
  * 1. CONTEXT
@@ -121,13 +123,26 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (!ctx.session || !ctx.session.user) {
+    const keyWorkspace = getWorkspaceHeader(ctx.headers);
+    console.log("keyWorkspace", keyWorkspace);
+    if (!ctx.session || !ctx.session.user || !keyWorkspace) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+    const currentWorkspace = ctx.session.user.workspaces?.find(
+      (workspace) => workspace.keyWorkspace == keyWorkspace,
+    );
+    if (!currentWorkspace) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
     return next({
       ctx: {
         // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
+        session: {
+          ...ctx.session,
+          user: ctx.session.user,
+          currentWorkspace,
+        },
       },
     });
   });

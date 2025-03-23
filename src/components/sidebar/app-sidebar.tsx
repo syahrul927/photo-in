@@ -4,9 +4,6 @@ import {
   AudioWaveformIcon,
   Command,
   GalleryVerticalEndIcon,
-  LifeBuoy,
-  Send,
-  Settings2Icon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -24,6 +21,7 @@ import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 import { TeamSwitcher } from "./team-switcher";
+import { useSession } from "next-auth/react";
 
 const teams = [
   {
@@ -42,19 +40,14 @@ const teams = [
     plan: "Free",
   },
 ];
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data } = useSession();
+  if (!data) return null;
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={teams} />
+        <TeamSwitcher workspaces={data.user.workspaces ?? []} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={NavigationMainConstant} />

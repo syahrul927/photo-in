@@ -23,19 +23,38 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
 import { roles } from "@/lib/auth-utils";
+import { getAvatarName } from "@/lib/avatar-utils";
+import { getBaseUrl } from "@/trpc/react";
 import { Check, LucideIcon, MoreHorizontalIcon } from "lucide-react";
 
 interface MemberCardProps {
   id: string;
   name: string;
+  status: string;
   email: string;
   avatar: string;
-  status: string;
   iconRole: LucideIcon;
   role: string;
 }
 const MemberCard = (member: MemberCardProps) => {
+  const { toast } = useToast();
+  const copyLink = async (id: string) => {
+    const link = `${getBaseUrl()}/auth/invitation/${id}`;
+    await navigator.clipboard.writeText(link);
+    toast({
+      title: "Link Copied!",
+      description: (
+        <div className="mt-1">
+          <p>Invitation link copied to clipboard:</p>
+          <p className="mt-1 overflow-x-auto rounded-md bg-secondary p-2 font-mono text-xs">
+            {link}
+          </p>
+        </div>
+      ),
+    });
+  };
   return (
     <div
       key={member.id}
@@ -44,25 +63,22 @@ const MemberCard = (member: MemberCardProps) => {
       <div className="flex items-center gap-3">
         <Avatar>
           <AvatarImage src={member.avatar} alt={member.name} />
-          <AvatarFallback>
-            {member.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")}
-          </AvatarFallback>
+          <AvatarFallback>{getAvatarName(member.name)}</AvatarFallback>
         </Avatar>
         <div className="grid gap-0.5">
           <div className="font-medium">{member.name}</div>
-          <div className="text-muted-foreground text-xs">{member.email}</div>
+          <div className="text-xs text-muted-foreground">{member.email}</div>
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <Badge
-          variant={member.status === "active" ? "default" : "secondary"}
-          className="hidden sm:inline-flex"
-        >
-          {member.status}
-        </Badge>
+        {member.status !== "active" && (
+          <Badge
+            variant={member.status === "expired" ? "destructive" : "secondary"}
+            className="hidden sm:inline-flex"
+          >
+            {member.status}
+          </Badge>
+        )}
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -111,10 +127,8 @@ const MemberCard = (member: MemberCardProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(member.email)}
-            >
-              Copy email
+            <DropdownMenuItem onClick={() => copyLink(member.id)}>
+              Share Invitation
             </DropdownMenuItem>
             <DropdownMenuItem>View profile</DropdownMenuItem>
             <DropdownMenuSeparator />

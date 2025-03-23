@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -14,11 +15,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useInvitation } from "./invitation-hooks";
 
 const validationEmailSchema = z.object({
   email: z.string().email({ message: "Please enter valid email" }),
@@ -32,24 +36,42 @@ const defaultValues: Partial<ValidationEmailType> = {
 };
 
 const ValidationEmailForm = ({
+  invitationId,
   step,
   next,
 }: {
+  invitationId: string;
   step: number;
   next: () => void;
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<ValidationEmailType>({
     defaultValues,
     resolver: zodResolver(validationEmailSchema),
   });
 
-  const onSubmit = (value: ValidationEmailType) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+  const { toast } = useToast();
+  const { setInvitation, invitation } = useInvitation();
+
+  const { mutateAsync, isPending } =
+    api.registerMember.validateInvitationEmailKey.useMutation();
+
+  const onSubmit = async ({ email, secretKey }: ValidationEmailType) => {
+    const result = await mutateAsync({
+      email,
+      secretKey,
+      invitationId,
+    });
+    if (result) {
+      setInvitation({ ...invitation, email, secretKey, invitationId });
       next();
-    }, 1500);
+      return;
+    }
+    toast({
+      title: "Invalid Invitation Link",
+      description:
+        "Please verify that the provided email and secret key are correct.",
+      variant: "destructive",
+    });
   };
   return (
     <motion.div
@@ -67,59 +89,55 @@ const ValidationEmailForm = ({
         width: "100%",
       }}
     >
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">Welcome</CardTitle>
-        <CardDescription>
-          Enter the email that was invited by your leader.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid gap-6">
-              <div className="grid gap-6">
-                <div className="grid gap-2">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="m@example.com"
-                            type="email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <FormField
-                    control={form.control}
-                    name="secretKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Secret Key</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button isLoading={isLoading} type="submit" className="w-full">
-                  Next
-                </Button>
-              </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardHeader className="text-center">
+            <CardTitle className="text-start">Welcome</CardTitle>
+            <CardDescription className="text-start">
+              Enter the email that was invited by your leader.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col space-y-1.5">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="m@example.com"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="secretKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Secret Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          </form>
-        </Form>
-      </CardContent>
+          </CardContent>
+          <CardFooter>
+            <Button isLoading={isPending} type="submit" className="w-full">
+              Next
+            </Button>
+          </CardFooter>
+        </form>
+      </Form>
     </motion.div>
   );
 };

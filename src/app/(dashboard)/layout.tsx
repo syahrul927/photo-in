@@ -1,3 +1,4 @@
+import LocalStorageInitializer from "@/components/commons/localstorage-initializer";
 import { DynamicBreadCrumb } from "@/components/layout/dynamic-breadcrumb";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -6,7 +7,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { cookies } from "next/headers";
 import { ReactNode } from "react";
 
 export default async function LayoutDashboard({
@@ -14,10 +14,9 @@ export default async function LayoutDashboard({
 }: {
   children: ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider>
+      <LocalStorageInitializer />
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">

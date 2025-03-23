@@ -7,15 +7,22 @@ import { cache } from "react";
 import { createCaller, type AppRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 import { createQueryClient } from "./query-client";
+import { keyWorkspaceBuilder } from "@/lib/workspace-utils";
+import { auth } from "@/server/auth";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
  * handling a tRPC call from a React Server Component.
  */
 const createContext = cache(async () => {
+  // const session = await auth();
   const heads = new Headers(await headers());
   heads.set("x-trpc-source", "rsc");
 
+  // send workspace in headers
+  // const workspace = localStorage.getItem("currentWorkspace") ?? "0";
+  // const currentWorkspace = keyWorkspaceBuilder(workspace, session?.user.id);
+  // heads.set("currentWorkspace", currentWorkspace);
   return createTRPCContext({
     headers: heads,
   });
@@ -26,5 +33,5 @@ const caller = createCaller(createContext);
 
 export const { trpc: api, HydrateClient } = createHydrationHelpers<AppRouter>(
   caller,
-  getQueryClient
+  getQueryClient,
 );

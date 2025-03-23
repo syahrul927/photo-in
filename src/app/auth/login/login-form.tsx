@@ -11,15 +11,20 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AuthError } from "next-auth";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -29,15 +34,50 @@ const loginSchema = z.object({
   csrfToken: z.string().optional(),
 });
 type LoginType = z.infer<typeof loginSchema>;
-const defaultValues: Partial<LoginType> = {};
+const defaultValues: Partial<LoginType> = {
+  email: "",
+  password: "",
+};
 
 export function LoginForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<LoginType>({
     defaultValues,
     resolver: zodResolver(loginSchema),
   });
-  const onSubmit = (value: LoginType) => {
-    console.log("value", value);
+  const onSubmit = async ({ email, password }: LoginType) => {
+    setIsLoading(true);
+
+    const responseSignin = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+    setIsLoading(false);
+    if (responseSignin?.error) {
+      switch (responseSignin.error) {
+        case "CredentialsSignin":
+          toast({
+            title: "Oops! Wrong credentials",
+            description: "Please check your email and password",
+          });
+          break;
+        default:
+          toast({
+            title: "Oops! Something went wrong",
+            description: "Please contact developer",
+          });
+          break;
+      }
+      return;
+    }
+    toast({
+      title: "Welcome back!",
+      description: "Redirecting to your dashboard...",
+    });
+    return router.push("/");
   };
   return (
     <div className="flex flex-col gap-6">
@@ -76,24 +116,29 @@ export function LoginForm() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-center">
-                            <FormLabel>Password</FormLabel>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="password" />
+                          </FormControl>
+
+                          <FormDescription>
                             <Link
                               href={"#"}
                               className="ml-auto text-sm underline-offset-4 hover:underline"
                             >
                               Forgot your password?
                             </Link>
-                          </div>
-                          <FormControl>
-                            <Input {...field} type="password" />
-                          </FormControl>
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
+                  <Button
+                    isLoading={isLoading}
+                    type="submit"
+                    className="w-full"
+                  >
                     Login
                   </Button>
                 </div>

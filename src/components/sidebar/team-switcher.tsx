@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { ChevronsUpDown, Plus } from "lucide-react";
+import * as React from "react";
 
 import {
   DropdownMenu,
@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,19 +17,33 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { CURRENT_WORKSPACE } from "@/lib/workspace-utils";
+import { Workspace } from "@/types/next-auth";
+import { DynamicIcon, IconName } from "lucide-react/dynamic";
 
-export function TeamSwitcher({
-  teams,
-}: {
-  teams: {
-    name: string;
-    logo: React.ElementType;
-    plan: string;
-  }[];
-}) {
+export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
   const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
-  if (!activeTeam) {
+  const currentWorkspace = localStorage.getItem(CURRENT_WORKSPACE);
+  const [activeWorkspace, setActiveWorkspace] =
+    React.useState<Workspace | null>(null);
+
+  const switchWorkspace = (workspace: Workspace) => {
+    if (workspace.workspaceId === activeWorkspace?.workspaceId) return;
+    setActiveWorkspace(workspace);
+    localStorage.setItem(CURRENT_WORKSPACE, workspace.keyWorkspace);
+    window.location.reload();
+  };
+
+  React.useEffect(() => {
+    if (currentWorkspace) {
+      const selectedWorkspace = workspaces.find(
+        (item) => item.keyWorkspace === currentWorkspace,
+      );
+      setActiveWorkspace(selectedWorkspace ?? null);
+    }
+  }, [currentWorkspace]);
+
+  if (!activeWorkspace) {
     return null;
   }
   return (
@@ -42,14 +55,19 @@ export function TeamSwitcher({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <activeTeam.logo className="size-4" />
+              <div className="flex aspect-square size-6 items-center justify-center rounded-sm bg-sidebar-primary text-sidebar-primary-foreground">
+                <DynamicIcon
+                  name={activeWorkspace.icon as IconName}
+                  className="size-4"
+                />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeTeam.name}
+                  {activeWorkspace.name}
                 </span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate text-xs">
+                  {activeWorkspace.description}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -60,28 +78,32 @@ export function TeamSwitcher({
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Teams
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Workspace
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {workspaces.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => switchWorkspace(team)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className="size-4 shrink-0" />
+                  <DynamicIcon
+                    name={team.icon as IconName}
+                    className="size-4 shrink-0"
+                  />
                 </div>
                 {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
-              <div className="bg-background flex size-6 items-center justify-center rounded-md border">
+              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="text-muted-foreground font-medium">Add team</div>
+              <div className="font-medium text-muted-foreground">
+                Add Workspace
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

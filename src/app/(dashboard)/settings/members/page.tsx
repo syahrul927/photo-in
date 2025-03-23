@@ -1,19 +1,34 @@
 "use client";
+import AccessControl from "@/components/commons/access-control";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { roles } from "@/lib/auth-utils";
-import { api, RouterOutputs } from "@/trpc/react";
-import { Loader2Icon, Shield } from "lucide-react";
+import { MemberViewType } from "@/server/api/routers/user-member-router";
+import { api } from "@/trpc/react";
+import { Shield } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useCallback } from "react";
 import DialogAddMember from "./dialog-add-member";
 import MemberCard from "./member-card";
 import { MemberCardSkeleton } from "./member-card-skeleton";
 
 function MembersPage() {
 	const {
-		data: members,
-		isLoading,
-		refetch,
-	} = api.userMember.getListMemberTeam.useQuery();
+		data: membersActive,
+		isLoading: isLoadingMemberActive,
+		refetch: refetchMemberActive,
+	} = api.userMember.getListMemberActive.useQuery();
+	const {
+		data: membersPending,
+		isLoading: isLoadingMemberPending,
+		refetch: refetchMemberPending,
+	} = api.userMember.getListMemberPending.useQuery();
+
+	const refetchAll = useCallback(async () => {
+		await Promise.all([refetchMemberActive(), refetchMemberPending()]);
+	}, [refetchMemberPending, refetchMemberActive]);
+
 	return (
 		<div className="flex flex-col space-y-6">
 			<div className="flex w-full items-center justify-between">
@@ -24,14 +39,37 @@ function MembersPage() {
 						control access to your workspace.
 					</p>
 				</div>
-				<DialogAddMember refetchMember={refetch} />
+				<AccessControl role={"admin"} feature="invitation" permission="write">
+					<DialogAddMember refetchMemberAction={refetchAll} />
+				</AccessControl>
 			</div>
 			<Separator />
-			<ScrollArea className="h-[48rem]">
-				<div className="space-y-3">
-					<ListMember members={members ?? []} isLoading={isLoading} />
-				</div>
-			</ScrollArea>
+			<Tabs defaultValue="active">
+				<TabsList className="grid w-full grid-cols-2">
+					<TabsTrigger value="active">Active</TabsTrigger>
+					<TabsTrigger value="pending">Pending</TabsTrigger>
+				</TabsList>
+				<TabsContent value="active">
+					<ScrollArea className="max-h-[36rem]">
+						<div className="space-y-3">
+							<ListMember
+								members={membersActive ?? []}
+								isLoading={isLoadingMemberActive}
+							/>
+						</div>
+					</ScrollArea>
+				</TabsContent>
+				<TabsContent value="pending">
+					<ScrollArea className="max-h-[36rem]">
+						<div className="space-y-3">
+							<ListMember
+								members={membersPending ?? []}
+								isLoading={isLoadingMemberPending}
+							/>
+						</div>
+					</ScrollArea>
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
@@ -43,7 +81,7 @@ const ListMember = ({
 	isLoading,
 }: {
 	isLoading?: boolean;
-	members: RouterOutputs["userMember"]["getListMemberTeam"];
+	members: MemberViewType[];
 }) => {
 	if (isLoading) {
 		return (
@@ -57,13 +95,13 @@ const ListMember = ({
 	if (members.length === 0) {
 		return (
 			<div className="flex w-full items-center justify-center p-3">
-				<p>No member Registered</p>
+				<p className="text-muted-foreground">No member registered</p>
 			</div>
 		);
 	}
 	return (
 		<>
-			{members.map((member) => {
+			{members.map(({ name, ...member }) => {
 				const roleData = roles.find((r) => r.value === member.role);
 				const RoleIcon = roleData?.icon || Shield;
 				return (
@@ -71,6 +109,7 @@ const ListMember = ({
 						key={member.id}
 						avatar=""
 						{...member}
+						name={name ?? member.email}
 						iconRole={RoleIcon}
 					/>
 				);

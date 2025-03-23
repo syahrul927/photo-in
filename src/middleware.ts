@@ -8,12 +8,12 @@ export async function middleware(request: NextRequest) {
 	const session = await auth();
 	const isAuthenticated = !!session?.user;
 
-	// const isPublicRoute = PUBLIC_ROUTES.find((route) =>
-	//   nextUrl.pathname.startsWith(route),
-	// );
-	// if (!isAuthenticated && !isPublicRoute) {
-	//   return NextResponse.redirect(new URL(LOGIN_ROUTE, request.url));
-	// }
+	const isPublicRoute = PUBLIC_ROUTES.find((route) =>
+		nextUrl.pathname.startsWith(route),
+	);
+	if (!isAuthenticated && !isPublicRoute) {
+		return NextResponse.redirect(new URL(LOGIN_ROUTE, request.url));
+	}
 }
 
 export const config = {

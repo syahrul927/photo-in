@@ -10,6 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { IconName, IconPicker } from "@/components/ui/icon-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
@@ -18,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const informationFormSchema = z.object({
+  icon: z.string().default("shell"),
   name: z
     .string()
     .min(2, {
@@ -31,8 +33,8 @@ const informationFormSchema = z.object({
 
 type InformationFormValues = z.infer<typeof informationFormSchema>;
 
-// This can come from your database or API.
 const defaultValues: Partial<InformationFormValues> = {
+  icon: "shell",
   name: "",
   description: "",
 };
@@ -58,6 +60,23 @@ export function InformationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="icon"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Icon</FormLabel>
+              <FormControl>
+                <div className="w-fit">
+                  <IconPicker
+                    value={field.value as IconName}
+                    onValueChange={(value) => field.onChange(value)}
+                  />
+                </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="name"
