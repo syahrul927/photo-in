@@ -30,7 +30,9 @@ const InvitationContext = createContext<{
   setInvitation: (data: InvitationData) => void;
 }>({
   invitation: defaultInvitationData,
-  setInvitation: () => {},
+  setInvitation: () => {
+    console.log("default");
+  },
 });
 
 export const InvitationProvider = ({ children }: { children: ReactNode }) => {

@@ -79,7 +79,7 @@ const useIconsData = () => {
       }
     };
 
-    loadIcons();
+    void loadIcons();
 
     return () => {
       isMounted = false;
@@ -203,7 +203,10 @@ const IconPicker = React.forwardRef<
 
       virtualItems.forEach((item, index) => {
         if (item.type === "category") {
-          indices[categorizedIcons[item.categoryIndex].name] = index;
+          const category = categorizedIcons[item.categoryIndex];
+          if (category) {
+            indices[category.name] = index;
+          }
         }
       });
 
@@ -216,7 +219,7 @@ const IconPicker = React.forwardRef<
       count: virtualItems.length,
       getScrollElement: () => parentRef.current,
       estimateSize: (index) =>
-        virtualItems[index].type === "category" ? 25 : 40,
+        virtualItems[index]?.type === "category" ? 25 : 40,
       paddingEnd: 2,
       gap: 10,
       overscan: 5,
@@ -363,7 +366,7 @@ const IconPicker = React.forwardRef<
                   className="top-0 z-10 bg-background"
                 >
                   <h3 className="text-sm font-medium capitalize">
-                    {categorizedIcons[item.categoryIndex].name}
+                    {categorizedIcons[item.categoryIndex]?.name}
                   </h3>
                   <div className="h-[1px] w-full bg-foreground/10" />
                 </div>

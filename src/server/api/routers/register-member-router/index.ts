@@ -51,13 +51,11 @@ export const registerMemberRouter = createTRPCRouter({
             password: passwordHash,
             email,
             name,
-            role: inv?.role,
           })
           .returning({
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role,
           })
           .then((result) => result[0]);
         if (!result) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });

@@ -67,13 +67,13 @@ export const userMemberRouter = createTRPCRouter({
         email: z.string(),
         role: z.string(),
         secretKey: z.string(),
-        workspaceId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const { workspaceId } = ctx.session.currentWorkspace;
       const preUserRegistered = await ctx.db.insert(invitation).values({
         email: input.email,
-        workspaceId: input.workspaceId,
+        workspaceId: workspaceId,
         status: "pending",
         invitedBy: ctx.session.user.id,
         role: input.role,
