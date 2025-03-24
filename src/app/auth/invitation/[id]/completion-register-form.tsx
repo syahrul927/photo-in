@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useInvitation } from "./invitation-hooks";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const completionRegisterSchema = z
   .object({
@@ -55,6 +56,8 @@ const CompletionRegisterForm = ({
     resolver: zodResolver(completionRegisterSchema),
   });
 
+  const router = useRouter();
+
   const { invitation } = useInvitation();
 
   const { toast } = useToast();
@@ -77,6 +80,7 @@ const CompletionRegisterForm = ({
       title: "Registration Successful",
       description: "The user has been registered successfully.",
     });
+    return router.push("/auth/login");
   };
   return (
     <motion.div

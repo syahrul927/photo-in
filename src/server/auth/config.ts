@@ -69,7 +69,7 @@ export const authConfig = {
           password,
           existUser.userPassword,
         );
-        console.log("password valid : ", isPasswordValid);
+        console.log("password valid : ", password, existUser.userPassword);
         if (!isPasswordValid) {
           return null;
         }
