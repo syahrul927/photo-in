@@ -1,8 +1,7 @@
-import { Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Role } from "@/config/permissions";
+import { LucideIcon, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 
-export type Role = "owner" | "admin" | "member" | "viewer";
-
-export const roles = [
+export const roles: { label: string; icon: LucideIcon; value: Role }[] = [
   {
     value: "owner",
     label: "Owner",
