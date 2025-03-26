@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 
 const completionRegisterSchema = z
   .object({
+    email: z.string(),
     password: z.string().min(6, { message: "Must be at least 6 characters." }),
     repassword: z
       .string()
@@ -51,14 +52,16 @@ const CompletionRegisterForm = ({
   step: number;
   previous: () => void;
 }) => {
+  const { invitation } = useInvitation();
   const form = useForm<CompletionRegisterType>({
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      email: invitation.email,
+    },
     resolver: zodResolver(completionRegisterSchema),
   });
 
   const router = useRouter();
-
-  const { invitation } = useInvitation();
 
   const { toast } = useToast();
 
@@ -108,6 +111,19 @@ const CompletionRegisterForm = ({
           </CardHeader>
           <CardContent>
             <div className="flex flex-col space-y-1.5">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input disabled {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="name"

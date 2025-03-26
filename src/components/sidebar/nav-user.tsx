@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react";
+import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,12 +18,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { User } from "next-auth";
 import { getAvatarName } from "@/lib/avatar-utils";
+import { User } from "next-auth";
 import { signOut } from "next-auth/react";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
+  const onClickLogOut = () => {
+    localStorage.clear();
+    void signOut();
+  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -78,7 +75,7 @@ export function NavUser({ user }: { user: User }) {
                 Account
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={onClickLogOut}>
               <LogOut />
               Log out
             </DropdownMenuItem>

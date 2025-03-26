@@ -1,4 +1,3 @@
-import LocalStorageInitializer from "@/components/commons/localstorage-initializer";
 import { DynamicBreadCrumb } from "@/components/layout/dynamic-breadcrumb";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -16,7 +15,6 @@ export default async function LayoutDashboard({
 }) {
   return (
     <SidebarProvider>
-      <LocalStorageInitializer />
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">

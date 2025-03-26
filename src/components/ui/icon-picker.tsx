@@ -425,8 +425,7 @@ const IconPicker = React.forwardRef<
             <Button variant="outline">
               {value || selectedIcon ? (
                 <>
-                  <Icon name={(value || selectedIcon)!} />{" "}
-                  {value || selectedIcon}
+                  <Icon name={(value || selectedIcon)!} />
                 </>
               ) : (
                 triggerPlaceholder

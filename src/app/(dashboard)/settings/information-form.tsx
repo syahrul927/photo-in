@@ -12,13 +12,25 @@ import {
 } from "@/components/ui/form";
 import { IconName, IconPicker } from "@/components/ui/icon-picker";
 import { Input } from "@/components/ui/input";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Cat, Dog, Fish, Rabbit, Turtle } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+const frameworksList = [
+  { value: "react", label: "React", icon: Turtle },
+  { value: "angular", label: "Angular", icon: Cat },
+  { value: "vue", label: "Vue", icon: Dog },
+  { value: "svelte", label: "Svelte", icon: Rabbit },
+  { value: "ember", label: "Ember", icon: Fish },
+];
 const informationFormSchema = z.object({
+  id: z.string(),
   icon: z.string().default("shell"),
   name: z
     .string()
@@ -33,18 +45,25 @@ const informationFormSchema = z.object({
 
 type InformationFormValues = z.infer<typeof informationFormSchema>;
 
-const defaultValues: Partial<InformationFormValues> = {
-  icon: "shell",
-  name: "",
-  description: "",
-};
-
 export function InformationForm() {
+  const { activeWorkspace } = useWorkspace();
+  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([
+    "react",
+    "angular",
+  ]);
   const form = useForm<InformationFormValues>({
     resolver: zodResolver(informationFormSchema),
-    defaultValues,
+    values: {
+      description: activeWorkspace?.description ?? "",
+      name: activeWorkspace?.name ?? "",
+      icon: activeWorkspace?.icon ?? "",
+      id: activeWorkspace?.workspaceId ?? "",
+    },
     mode: "onChange",
   });
+
+  const isMember =
+    activeWorkspace?.role !== "admin" && activeWorkspace?.role !== "owner";
 
   function onSubmit(data: InformationFormValues) {
     toast({
@@ -69,6 +88,7 @@ export function InformationForm() {
               <FormControl>
                 <div className="w-fit">
                   <IconPicker
+                    disabled={isMember}
                     value={field.value as IconName}
                     onValueChange={(value) => field.onChange(value)}
                   />
@@ -84,7 +104,7 @@ export function InformationForm() {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input disabled={isMember} placeholder="shadcn" {...field} />
               </FormControl>
               <FormDescription>
                 This is your public display name. It can be your real name or a
@@ -100,7 +120,11 @@ export function InformationForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
-              <Textarea {...field} placeholder="Describe your team here." />
+              <Textarea
+                disabled={isMember}
+                {...field}
+                placeholder="Describe your team here."
+              />
               <FormDescription>
                 Write everything about this team.
               </FormDescription>
@@ -108,7 +132,32 @@ export function InformationForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Update profile</Button>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <MultiSelect
+                options={frameworksList}
+                onValueChange={setSelectedFrameworks}
+                defaultValue={selectedFrameworks}
+                placeholder="Select frameworks"
+                variant="inverted"
+                animation={2}
+                maxCount={3}
+              />
+              <FormDescription>
+                Write everything about this team.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button disabled={!form.formState.isDirty || isMember} type="submit">
+          Update profile
+        </Button>
       </form>
     </Form>
   );

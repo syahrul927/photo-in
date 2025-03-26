@@ -17,7 +17,7 @@ const AccessControlContext = createContext<AccessControlContextValue>({
 export const useAccessControl = () => useContext(AccessControlContext);
 
 interface AccessControlProps {
-  role: Role;
+  role?: Role;
   feature: Feature;
   permission: Permission;
   hideWhenNoAccess?: boolean;
@@ -31,6 +31,7 @@ const AccessControl: React.FC<AccessControlProps> = ({
   hideWhenNoAccess = true,
   children,
 }) => {
+  if (!role) return null;
   const hasAccess =
     rolePermissions[role]?.[feature]?.includes(permission) ?? false;
 

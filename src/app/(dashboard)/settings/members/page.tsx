@@ -3,6 +3,7 @@ import AccessControl from "@/components/commons/access-control";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { roles } from "@/lib/auth-utils";
 import { MemberViewType } from "@/server/api/routers/user-member-router";
 import { api } from "@/trpc/react";
@@ -28,6 +29,7 @@ function MembersPage() {
     await Promise.all([refetchMemberActive(), refetchMemberPending()]);
   }, [refetchMemberPending, refetchMemberActive]);
 
+  const { activeWorkspace } = useWorkspace();
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex w-full items-center justify-between">
@@ -38,7 +40,11 @@ function MembersPage() {
             control access to your workspace.
           </p>
         </div>
-        <AccessControl role={"admin"} feature="invitation" permission="write">
+        <AccessControl
+          role={activeWorkspace?.role}
+          feature="invitation"
+          permission="write"
+        >
           <DialogAddMember refetchMemberAction={refetchAll} />
         </AccessControl>
       </div>

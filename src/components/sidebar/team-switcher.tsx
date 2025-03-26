@@ -31,7 +31,7 @@ export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
     if (workspace.workspaceId === activeWorkspace?.workspaceId) return;
     setActiveWorkspace(workspace);
     localStorage.setItem(CURRENT_WORKSPACE, workspace.keyWorkspace);
-    window.location.reload();
+    window.location.assign("/");
   };
 
   React.useEffect(() => {

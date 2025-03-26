@@ -20,8 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthError } from "next-auth";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -77,6 +76,7 @@ export function LoginForm() {
       title: "Welcome back!",
       description: "Redirecting to your dashboard...",
     });
+
     return router.push("/");
   };
   return (
@@ -100,7 +100,7 @@ export function LoginForm() {
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="m@example.com"
+                              placeholder="mail@example.com"
                               type="email"
                               {...field}
                             />
