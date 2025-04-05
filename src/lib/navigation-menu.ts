@@ -6,31 +6,34 @@ import {
   SendIcon,
   SettingsIcon,
 } from "lucide-react";
+import { PAGE_URLS } from "./page-url";
 
 export const NavigationMainConstant: NavigationType[] = [
   {
     title: "Home",
     code: "access:home",
-    url: "/",
+    url: PAGE_URLS.HOME,
     icon: HomeIcon,
   },
   {
-    title: "Event Management",
+    title: "Events",
     code: "access:event-management",
-    url: "/events",
+    url: PAGE_URLS.EVENTS,
     icon: CalendarIcon,
     items: [
       {
+        url: PAGE_URLS.EVENTS_CREATE,
         title: "Create Event",
-        url: "/events/create",
+        hide: true,
       },
       {
-        title: "Manage Events",
-        url: "/events/manage",
+        url: PAGE_URLS.EVENTS_EDIT("*"),
+        title: "Edit Event",
+        hide: true,
       },
       {
-        title: "Detail Event",
-        url: "/events/detail",
+        url: PAGE_URLS.EVENTS_DETAIL("*"),
+        title: "Event Details",
         hide: true,
       },
     ],
@@ -40,19 +43,19 @@ export const NavigationMainConstant: NavigationType[] = [
 export const NavigationSecondaryConstant: NavigationType[] = [
   {
     title: "Settings",
-    url: "/settings",
+    url: PAGE_URLS.SETTINGS,
     icon: SettingsIcon,
     code: "access:settings",
   },
   {
     title: "Support",
-    url: "/support",
+    url: PAGE_URLS.SUPPORT,
     icon: LifeBuoyIcon,
     code: "access:support",
   },
   {
     title: "Feedback",
-    url: "/feedback",
+    url: PAGE_URLS.FEEDBACK,
     icon: SendIcon,
     code: "access:feedback",
   },
@@ -61,12 +64,12 @@ export const NavigationSettingsConstant: Omit<
   NavigationType,
   "code" | "icon"
 >[] = [
-  {
-    title: "Information",
-    url: "/settings",
-  },
-  {
-    title: "Members",
-    url: "/settings/members",
-  },
-];
+    {
+      title: "Information",
+      url: PAGE_URLS.SETTINGS,
+    },
+    {
+      title: "Members",
+      url: PAGE_URLS.SETTINGS_MEMBER,
+    },
+  ];

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { PAGE_URLS } from "@/lib/page-url";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -77,7 +78,7 @@ export function LoginForm() {
       description: "Redirecting to your dashboard...",
     });
 
-    return router.push("/");
+    return router.push(PAGE_URLS.HOME);
   };
   return (
     <div className="flex flex-col gap-6">

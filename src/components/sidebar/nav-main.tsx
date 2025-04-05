@@ -20,8 +20,33 @@ import {
 } from "@/components/ui/sidebar";
 import { NavigationType } from "./types";
 import Link from "next/link";
+import { Skeleton } from "../ui/skeleton";
 
-export function NavMain({ items }: { items: NavigationType[] }) {
+export function NavMain({
+  items,
+  isLoading,
+}: {
+  items: NavigationType[];
+  isLoading?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <>
+        <SidebarMenuItem>
+          <div className="flex items-center gap-2 p-2">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <div className="flex items-center gap-2 p-2">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </SidebarMenuItem>
+      </>
+    );
+  }
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Team</SidebarGroupLabel>
@@ -35,7 +60,7 @@ export function NavMain({ items }: { items: NavigationType[] }) {
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
-              {item.items?.length ? (
+              {item.items?.filter(({ hide }) => !hide).length ? (
                 <>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuAction className="data-[state=open]:rotate-90">

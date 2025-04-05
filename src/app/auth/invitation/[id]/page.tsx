@@ -2,6 +2,7 @@ import { GalleryVerticalEnd } from "lucide-react";
 import InvitationForm from "./invitation-form";
 import { redirect } from "next/navigation";
 import { api } from "@/trpc/server";
+import { PAGE_URLS } from "@/lib/page-url";
 
 const InvitationPage = async ({
   params,
@@ -11,7 +12,7 @@ const InvitationPage = async ({
   const invitationId = (await params).id;
   const validLink =
     await api.registerMember.validateInvitationLink(invitationId);
-  if (!validLink) redirect("/404");
+  if (!validLink) redirect(PAGE_URLS.NOT_FOUND);
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">

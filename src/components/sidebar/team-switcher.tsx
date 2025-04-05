@@ -20,10 +20,17 @@ import {
 import { CURRENT_WORKSPACE } from "@/lib/workspace-utils";
 import { Workspace } from "@/types/next-auth";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { PAGE_URLS } from "@/lib/page-url";
+import { Skeleton } from "../ui/skeleton";
 
-export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
+export function TeamSwitcher({
+  workspaces,
+  isLoading,
+}: {
+  workspaces: Workspace[];
+  isLoading?: boolean;
+}) {
   const { isMobile } = useSidebar();
-  const currentWorkspace = localStorage.getItem(CURRENT_WORKSPACE);
   const [activeWorkspace, setActiveWorkspace] =
     React.useState<Workspace | null>(null);
 
@@ -31,18 +38,35 @@ export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
     if (workspace.workspaceId === activeWorkspace?.workspaceId) return;
     setActiveWorkspace(workspace);
     localStorage.setItem(CURRENT_WORKSPACE, workspace.keyWorkspace);
-    window.location.assign("/");
+    window.location.assign(PAGE_URLS.HOME);
   };
 
   React.useEffect(() => {
-    if (currentWorkspace) {
+    if (localStorage) {
+      const currentWorkspace = localStorage.getItem(CURRENT_WORKSPACE);
       const selectedWorkspace = workspaces.find(
         (item) => item.keyWorkspace === currentWorkspace,
       );
       setActiveWorkspace(selectedWorkspace ?? null);
     }
-  }, [currentWorkspace]);
+  }, [workspaces]);
 
+  if (isLoading) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <div className="flex items-center gap-3 p-2">
+            <Skeleton className="h-10 w-10 rounded-md" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <ChevronsUpDown className="ml-auto h-4 w-4 opacity-50" />
+          </div>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
   if (!activeWorkspace) {
     return null;
   }
@@ -55,7 +79,7 @@ export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-6 items-center justify-center rounded-sm bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-6 items-center justify-center rounded-sm">
                 <DynamicIcon
                   name={activeWorkspace.icon as IconName}
                   className="size-4"
@@ -78,7 +102,7 @@ export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
+            <DropdownMenuLabel className="text-muted-foreground text-xs">
               Workspace
             </DropdownMenuLabel>
             {workspaces.map((team, index) => (
@@ -98,10 +122,10 @@ export function TeamSwitcher({ workspaces }: { workspaces: Workspace[] }) {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+              <div className="bg-background flex size-6 items-center justify-center rounded-md border">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">
+              <div className="text-muted-foreground font-medium">
                 Add Workspace
               </div>
             </DropdownMenuItem>

@@ -38,7 +38,7 @@ interface MemberCardProps {
   iconRole: LucideIcon;
   role: string;
 }
-const MemberCard = (member: MemberCardProps) => {
+export const MemberCard = (member: MemberCardProps) => {
   const { toast } = useToast();
   const copyLink = async (id: string) => {
     const link = `${getBaseUrl()}/auth/invitation/${id}`;
@@ -144,4 +144,3 @@ const MemberCard = (member: MemberCardProps) => {
     </div>
   );
 };
-export default MemberCard;

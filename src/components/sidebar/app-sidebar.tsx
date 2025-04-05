@@ -20,20 +20,27 @@ import { NavUser } from "./nav-user";
 import { TeamSwitcher } from "./team-switcher";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data } = useSession();
+  const { data, status } = useSession();
   useWorkspace();
-  if (!data) return null;
+  const isLoading = status === "loading";
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <TeamSwitcher workspaces={data.user.workspaces ?? []} />
+        <TeamSwitcher
+          isLoading={isLoading}
+          workspaces={data?.user.workspaces ?? []}
+        />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={NavigationMainConstant} />
-        <NavSecondary items={NavigationSecondaryConstant} className="mt-auto" />
+        <NavMain items={NavigationMainConstant} isLoading={isLoading} />
+        <NavSecondary
+          items={NavigationSecondaryConstant}
+          className="mt-auto"
+          isLoading={isLoading}
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={data?.user} isLoading={isLoading} />
       </SidebarFooter>
     </Sidebar>
   );

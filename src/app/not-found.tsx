@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Camera, Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PAGE_URLS } from "@/lib/page-url";
 
 export default function NotFound() {
   return (
@@ -28,7 +29,7 @@ export default function NotFound() {
         {/* Action buttons */}
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <Button asChild variant="outline">
-            <Link href="/">
+            <Link href={PAGE_URLS.HOME}>
               <Home className="mr-2 h-4 w-4" />
               Return to Gallery
             </Link>

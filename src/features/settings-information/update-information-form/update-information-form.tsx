@@ -12,26 +12,16 @@ import {
 } from "@/components/ui/form";
 import { IconName, IconPicker } from "@/components/ui/icon-picker";
 import { Input } from "@/components/ui/input";
-import { MultiSelect } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Cat, Dog, Fish, Rabbit, Turtle } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const frameworksList = [
-  { value: "react", label: "React", icon: Turtle },
-  { value: "angular", label: "Angular", icon: Cat },
-  { value: "vue", label: "Vue", icon: Dog },
-  { value: "svelte", label: "Svelte", icon: Rabbit },
-  { value: "ember", label: "Ember", icon: Fish },
-];
-const informationFormSchema = z.object({
+const updateInformationFormSchema = z.object({
   id: z.string(),
-  icon: z.string().default("shell"),
+  icon: z.string(),
   name: z
     .string()
     .min(2, {
@@ -43,20 +33,16 @@ const informationFormSchema = z.object({
   description: z.string(),
 });
 
-type InformationFormValues = z.infer<typeof informationFormSchema>;
+type UpdateInformationFormValues = z.infer<typeof updateInformationFormSchema>;
 
-export function InformationForm() {
+export function UpdateInformationForm() {
   const { activeWorkspace } = useWorkspace();
-  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([
-    "react",
-    "angular",
-  ]);
-  const form = useForm<InformationFormValues>({
-    resolver: zodResolver(informationFormSchema),
+  const form = useForm<UpdateInformationFormValues>({
+    resolver: zodResolver(updateInformationFormSchema),
     values: {
       description: activeWorkspace?.description ?? "",
       name: activeWorkspace?.name ?? "",
-      icon: activeWorkspace?.icon ?? "",
+      icon: activeWorkspace?.icon ?? "shell",
       id: activeWorkspace?.workspaceId ?? "",
     },
     mode: "onChange",
@@ -65,7 +51,7 @@ export function InformationForm() {
   const isMember =
     activeWorkspace?.role !== "admin" && activeWorkspace?.role !== "owner";
 
-  function onSubmit(data: InformationFormValues) {
+  function onSubmit(data: UpdateInformationFormValues) {
     toast({
       title: "You submitted the following values:",
       description: (
@@ -124,28 +110,6 @@ export function InformationForm() {
                 disabled={isMember}
                 {...field}
                 placeholder="Describe your team here."
-              />
-              <FormDescription>
-                Write everything about this team.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <MultiSelect
-                options={frameworksList}
-                onValueChange={setSelectedFrameworks}
-                defaultValue={selectedFrameworks}
-                placeholder="Select frameworks"
-                variant="inverted"
-                animation={2}
-                maxCount={3}
               />
               <FormDescription>
                 Write everything about this team.

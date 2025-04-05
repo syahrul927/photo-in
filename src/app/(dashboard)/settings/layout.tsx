@@ -1,7 +1,5 @@
 import ContentLayout from "@/components/layout/content-layout";
 import { ContentSidebar } from "@/components/sidebar/content-sidebar";
-import { NavigationType } from "@/components/sidebar/types";
-import { Separator } from "@/components/ui/separator";
 import { NavigationSettingsConstant } from "@/lib/navigation-menu";
 import React from "react";
 

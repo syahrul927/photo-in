@@ -5,6 +5,7 @@ export const validateInvitationEmailKeyRequestSchema = z.object({
   email: z.string(),
   secretKey: z.string(),
 });
+
 export const registerInformationUserRequestSchema =
   validateInvitationEmailKeyRequestSchema.extend({
     name: z.string(),

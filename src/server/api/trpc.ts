@@ -11,10 +11,9 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { getWorkspaceHeader } from "@/lib/workspace-utils";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { getWorkspaceHeader } from "@/lib/workspace-utils";
-import { workspace } from "../db/schemas/schema";
 
 /**
  * 1. CONTEXT

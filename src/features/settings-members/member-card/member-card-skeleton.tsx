@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function MemberCardSkeleton() {
+export const MemberCardSkeleton = () => {
 	return (
 		<div className="flex items-center justify-between rounded-lg border p-3">
 			<div className="flex items-center gap-3">
@@ -17,4 +17,4 @@ export function MemberCardSkeleton() {
 			</div>
 		</div>
 	);
-}
+};

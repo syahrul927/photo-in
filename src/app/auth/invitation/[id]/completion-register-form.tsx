@@ -23,6 +23,7 @@ import { z } from "zod";
 import { useInvitation } from "./invitation-hooks";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { PAGE_URLS } from "@/lib/page-url";
 
 const completionRegisterSchema = z
   .object({
@@ -83,7 +84,7 @@ const CompletionRegisterForm = ({
       title: "Registration Successful",
       description: "The user has been registered successfully.",
     });
-    return router.push("/auth/login");
+    return router.push(PAGE_URLS.LOGIN);
   };
   return (
     <motion.div

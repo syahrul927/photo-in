@@ -21,13 +21,33 @@ import {
 import { getAvatarName } from "@/lib/avatar-utils";
 import { User } from "next-auth";
 import { signOut } from "next-auth/react";
+import { Skeleton } from "../ui/skeleton";
 
-export function NavUser({ user }: { user: User }) {
+export function NavUser({
+  user,
+  isLoading,
+}: {
+  user?: User;
+  isLoading?: boolean;
+}) {
   const { isMobile } = useSidebar();
   const onClickLogOut = () => {
     localStorage.clear();
     void signOut();
   };
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-3 p-2">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-3 w-32" />
+        </div>
+        <ChevronsUpDown className="ml-auto h-4 w-4 opacity-50" />
+      </div>
+    );
+  }
+  if (!user) return null;
   return (
     <SidebarMenu>
       <SidebarMenuItem>

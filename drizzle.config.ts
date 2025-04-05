@@ -13,9 +13,8 @@ export default {
     "./src/server/db/schemas/schema.ts",
     "./src/server/db/schemas/relations.ts",
   ],
-  dialect: "sqlite",
+  dialect: "turso",
   dbCredentials,
-  driver: "turso",
   verbose: true,
   breakpoints: true,
 } satisfies Config;

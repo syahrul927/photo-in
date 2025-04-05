@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import {
   Calendar,
-  CalendarIcon,
   Download,
   Eye,
   Filter,
@@ -20,7 +19,6 @@ import {
 import Image, { ImageProps } from "next/image";
 import { useEffect, useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,11 +29,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 import {
   Select,
   SelectContent,
@@ -100,9 +93,8 @@ const ImageWithFallback = ({
             // Fallback to placeholder if image fails to load
             setImgSrc("/placeholder.svg");
           }}
-          className={`transition-opacity duration-300 ${
-            isLoading ? "opacity-0" : "opacity-100"
-          }`}
+          className={`transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
+            }`}
           {...props}
         />
       )}
@@ -188,59 +180,11 @@ export default function GalleryView() {
                 <Badge variant="outline">{event.type}</Badge>
               </div>
             </div>
-
-            <div className="mt-6 flex items-center space-x-1">
-              {event.contributors.map((contributor, i) => (
-                <HoverCard key={contributor.name}>
-                  <HoverCardTrigger>
-                    <Avatar className="h-8 w-8 hover:cursor-pointer">
-                      <AvatarImage
-                        src={contributor.avatar}
-                        alt={contributor.name}
-                      />
-                      <AvatarFallback>
-                        {contributor.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                  </HoverCardTrigger>
-                  <HoverCardContent align="start">
-                    <div className="flex space-x-4">
-                      <Avatar key={i} className="h-8 w-8">
-                        <AvatarImage
-                          src={contributor.avatar}
-                          alt={contributor.name}
-                        />
-                        <AvatarFallback>
-                          {contributor.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-semibold">
-                          {contributor.name}
-                        </h4>
-                        <div className="flex items-center">
-                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />{" "}
-                          <span className="text-xs text-muted-foreground">
-                            Joined December 2021
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
-              ))}
-            </div>
           </div>
         </div>
 
         {/* Gallery Controls */}
-        <div className="border-b">
+        <div>
           <div className="container py-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center space-x-2">
@@ -281,11 +225,10 @@ export default function GalleryView() {
         {/* Photo Gallery */}
         <div className="container py-8">
           <motion.div
-            className={`grid gap-4 ${
-              viewMode === "grid"
+            className={`grid gap-4 ${viewMode === "grid"
                 ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                 : "grid-cols-2 md:grid-cols-3"
-            }`}
+              }`}
           >
             {photos.map((photo, index) => (
               <motion.div

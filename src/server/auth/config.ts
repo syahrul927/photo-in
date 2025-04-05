@@ -12,6 +12,7 @@ import { membership, user, workspace } from "../db/schemas/schema";
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  // trustHost: true,
   session: {
     strategy: "jwt",
   },

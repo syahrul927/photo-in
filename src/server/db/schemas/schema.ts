@@ -175,6 +175,10 @@ export const event = sqliteTable("Event", {
   description: text("description"),
   location: text("location"),
   dateEvent: numeric("dateEvent"),
+  categories: text("tags").notNull().default("[]"), // Simpan sebagai JSON string
+  targetTotalPhotos: numeric("targetTotalPhotos"),
+  clientName: text("clientName"),
+  status: text("status").notNull(), //"upcoming" | "in-progress" | "completed"
   workspaceId: text("workspaceId")
     .notNull()
     .references(() => workspace.id),

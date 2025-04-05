@@ -3,15 +3,17 @@ import AccessControl from "@/components/commons/access-control";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AddMemberDialog,
+  MemberCard,
+  MemberCardSkeleton,
+} from "@/features/settings-members";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { roles } from "@/lib/auth-utils";
-import { MemberViewType } from "@/server/api/routers/user-member-router";
+import { MemberViewType } from "@/server/api/routers/user-member-router/query/type";
 import { api } from "@/trpc/react";
 import { Shield } from "lucide-react";
 import { useCallback } from "react";
-import DialogAddMember from "./dialog-add-member";
-import MemberCard from "./member-card";
-import { MemberCardSkeleton } from "./member-card-skeleton";
 
 function MembersPage() {
   const {
@@ -35,7 +37,7 @@ function MembersPage() {
       <div className="flex w-full items-center justify-between">
         <div className="basis-2/3">
           <h3>Team Member</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Manage your team members with ease. Invite, assign roles, and
             control access to your workspace.
           </p>
@@ -45,7 +47,7 @@ function MembersPage() {
           feature="invitation"
           permission="write"
         >
-          <DialogAddMember refetchMemberAction={refetchAll} />
+          <AddMemberDialog refetchMemberAction={refetchAll} />
         </AccessControl>
       </div>
       <Separator />

@@ -53,13 +53,11 @@ const defaultValues: Partial<RegisterMemberFormType> = {
   role: "",
   secretKey: "",
 };
-interface DialogAddMemberProps {
+interface AddMemberDialog {
   refetchMemberAction: () => void;
 }
 
-export default function DialogAddMember({
-  refetchMemberAction,
-}: DialogAddMemberProps) {
+export const AddMemberDialog = ({ refetchMemberAction }: AddMemberDialog) => {
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -201,4 +199,4 @@ export default function DialogAddMember({
       </DialogContent>
     </Dialog>
   );
-}
+};
