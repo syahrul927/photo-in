@@ -28,6 +28,7 @@ export const authConfig = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
+        console.log("Parsed Credentials", credentials);
         const parseResult = credentialsSchema.safeParse(credentials);
         if (!parseResult.success) {
           return null;

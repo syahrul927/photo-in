@@ -24,6 +24,7 @@ import { useInvitation } from "./invitation-hooks";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { PAGE_URLS } from "@/lib/page-url";
+import { devNull } from "os";
 
 const completionRegisterSchema = z
   .object({
@@ -40,11 +41,6 @@ const completionRegisterSchema = z
   });
 
 type CompletionRegisterType = z.infer<typeof completionRegisterSchema>;
-const defaultValues: Partial<CompletionRegisterType> = {
-  password: "",
-  repassword: "",
-  name: "",
-};
 
 const CompletionRegisterForm = ({
   step,
@@ -55,9 +51,11 @@ const CompletionRegisterForm = ({
 }) => {
   const { invitation } = useInvitation();
   const form = useForm<CompletionRegisterType>({
-    defaultValues: {
-      ...defaultValues,
-      email: invitation.email,
+    values: {
+      email: invitation.email ?? "",
+      password: "",
+      repassword: "",
+      name: "",
     },
     resolver: zodResolver(completionRegisterSchema),
   });
@@ -94,7 +92,7 @@ const CompletionRegisterForm = ({
         opacity: step === 2 ? 1 : 0,
       }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="w-full"
+      className="flex w-full flex-col gap-6" // from card style
       style={{
         position: step === 2 ? "relative" : "absolute",
         top: 0,
@@ -102,69 +100,68 @@ const CompletionRegisterForm = ({
         width: "100%",
       }}
     >
+      <CardHeader>
+        <CardTitle>Register Account</CardTitle>
+        <CardDescription>Fill the information below.</CardDescription>
+      </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardHeader className="text-left">
-            <CardTitle className="text-start">Register Account</CardTitle>
-            <CardDescription className="text-start">
-              Fill the information below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col space-y-1.5">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input disabled {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="repassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="password" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
+        >
+          <CardContent className="flex flex-col gap-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input disabled {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Password" type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="repassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="password" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button isLoading={isPending} type="submit">
