@@ -1,5 +1,6 @@
 import { protectedProcedure } from "@/server/api/trpc";
 import { invitation } from "@/server/db/schemas/schema";
+import { InvitationStatusType } from "@/types/invitation-status";
 import { z } from "zod";
 
 export const createInvitationMember = protectedProcedure
@@ -15,7 +16,7 @@ export const createInvitationMember = protectedProcedure
     const preUserRegistered = await ctx.db.insert(invitation).values({
       email: input.email,
       workspaceId: workspaceId,
-      status: "pending",
+      status: InvitationStatusType.PENDING,
       invitedBy: ctx.session.user.id,
       role: input.role,
       secretKey: input.secretKey,

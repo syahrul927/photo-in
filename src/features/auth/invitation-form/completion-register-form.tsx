@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   CardContent,
@@ -20,11 +21,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useInvitation } from "./invitation-hooks";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { PAGE_URLS } from "@/lib/page-url";
-import { devNull } from "os";
+import { useInvitation } from "@/hooks/use-invitation";
 
 const completionRegisterSchema = z
   .object({
@@ -42,7 +42,7 @@ const completionRegisterSchema = z
 
 type CompletionRegisterType = z.infer<typeof completionRegisterSchema>;
 
-const CompletionRegisterForm = ({
+export const CompletionRegisterForm = ({
   step,
   previous,
 }: {

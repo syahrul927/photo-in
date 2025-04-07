@@ -1,8 +1,8 @@
 import { GalleryVerticalEnd } from "lucide-react";
-import InvitationForm from "./invitation-form";
 import { redirect } from "next/navigation";
 import { api } from "@/trpc/server";
 import { PAGE_URLS } from "@/lib/page-url";
+import { InvitationForm } from "@/features/auth";
 
 const InvitationPage = async ({
   params,
@@ -17,7 +17,7 @@ const InvitationPage = async ({
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
       <a href="#" className="flex items-center gap-2 self-center font-medium">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+        <div className="bg-primary text-primary-foreground flex h-6 w-6 items-center justify-center rounded-md">
           <GalleryVerticalEnd className="size-4" />
         </div>
         PhotoIn Corp.

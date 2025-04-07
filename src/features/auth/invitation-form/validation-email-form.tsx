@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   CardContent,
@@ -15,13 +16,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useInvitation } from "@/hooks/use-invitation";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useInvitation } from "./invitation-hooks";
 
 const validationEmailSchema = z.object({
   email: z.string().email({ message: "Please enter valid email" }),
@@ -34,7 +35,7 @@ const defaultValues: Partial<ValidationEmailType> = {
   secretKey: "",
 };
 
-const ValidationEmailForm = ({
+export const ValidationEmailForm = ({
   invitationId,
   step,
   next,
@@ -141,4 +142,3 @@ const ValidationEmailForm = ({
     </motion.div>
   );
 };
-export default ValidationEmailForm;

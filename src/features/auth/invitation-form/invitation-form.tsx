@@ -1,11 +1,11 @@
 "use client";
 import { Card } from "@/components/ui/card";
-import ValidationEmailForm from "./validation-email-form";
 import { useState } from "react";
+import { InvitationProvider } from "@/hooks/use-invitation";
+import { ValidationEmailForm } from "./validation-email-form";
 import CompletionRegisterForm from "./completion-register-form";
-import { InvitationProvider } from "./invitation-hooks";
 
-const InvitationForm = ({ invitationId }: { invitationId: string }) => {
+export const InvitationForm = ({ invitationId }: { invitationId: string }) => {
   const [step, setStep] = useState(1);
   return (
     <div className="flex flex-col gap-6">
@@ -26,4 +26,3 @@ const InvitationForm = ({ invitationId }: { invitationId: string }) => {
     </div>
   );
 };
-export default InvitationForm;

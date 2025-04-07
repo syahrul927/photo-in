@@ -9,6 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { hashPassword } from "@/lib/password-utils";
 import { toISOString } from "@/server/db/transformers/database-utils";
 import { keyWorkspaceBuilder } from "@/lib/workspace-utils";
+import { InvitationStatusType } from "@/types/invitation-status";
 
 const validateInvitation = (
   email: string,
@@ -60,7 +61,7 @@ export const registerInformationUser = publicProcedure
       const updateInvitation = ctx.db
         .update(invitation)
         .set({
-          status: "accepted",
+          status: InvitationStatusType.ACCEPTED,
           acceptedAt: toISOString(new Date()),
         })
         .where(eq(invitation.id, invitationId));

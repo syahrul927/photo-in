@@ -2,6 +2,7 @@ import { protectedProcedure } from "@/server/api/trpc";
 import { MemberViewType } from "./type";
 import { and, eq, ne } from "drizzle-orm";
 import { invitation, membership, user } from "@/server/db/schemas/schema";
+import { InvitationStatusType } from "@/types/invitation-status";
 
 export const getListMemberPending = protectedProcedure.query(
   async ({ ctx: { session, db } }): Promise<MemberViewType[]> => {
@@ -9,7 +10,7 @@ export const getListMemberPending = protectedProcedure.query(
     const invitations = await db.query.invitation.findMany({
       where: and(
         eq(invitation.workspaceId, currentWorkspace.workspaceId),
-        ne(invitation.status, "accepted"),
+        ne(invitation.status, InvitationStatusType.ACCEPTED),
       ),
     });
     return invitations.map(({ role, email, id, secretKey, status }) => ({
