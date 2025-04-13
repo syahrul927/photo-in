@@ -55,19 +55,19 @@ export default function EventPage() {
     }
   };
 
-  const { mutateAsync: updateStatusEvent } =
+  const { mutateAsync: updateStatusEvent, isPending } =
     api.event.updateStatusEvent.useMutation();
 
-  const submitUpdateStatus = (status: EventStatusType) => {
+  const submitUpdateStatus = async (status: EventStatusType) => {
     if (selectedEvent) {
       updateStatusEvent({ id: selectedEvent.id, status })
         .then(() => {
           void reloadEvent();
-
           toast({
             title: "Status Updated",
             description: `Successfully change status.`,
           });
+          setEventStatusDialog(false);
         })
         .catch((e) => {
           const errorMessage =
@@ -162,6 +162,7 @@ export default function EventPage() {
         initialStatus={selectedEvent?.status}
         open={eventStatusDialog}
         setOpen={setEventStatusDialog}
+        isLoading={isPending}
         onSubmit={submitUpdateStatus}
       />
     </ContentLayout>

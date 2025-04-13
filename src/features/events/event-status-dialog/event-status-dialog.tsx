@@ -31,6 +31,7 @@ interface EventStatusDialogProps {
   eventId?: string;
   open?: boolean;
   setOpen: (open: boolean) => void;
+  isLoading?: boolean;
 }
 
 export default function EventStatusDialog({
@@ -38,15 +39,10 @@ export default function EventStatusDialog({
   open,
   onSubmit,
   setOpen,
+  isLoading,
 }: EventStatusDialogProps) {
   const [status, setStatus] = useState<EventStatusType>(initialStatus);
 
-  const handleSubmit = () => {
-    if (onSubmit) {
-      onSubmit(status);
-    }
-    setOpen(false);
-  };
   useEffect(() => {
     if (open) {
       setStatus(initialStatus);
@@ -89,7 +85,9 @@ export default function EventStatusDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSubmit}>Save changes</Button>
+          <Button isLoading={isLoading} onClick={() => onSubmit(status)}>
+            Save changes
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
