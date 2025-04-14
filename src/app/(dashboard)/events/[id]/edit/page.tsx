@@ -6,11 +6,11 @@ import { api } from "@/trpc/react";
 import { notFound, useParams } from "next/navigation";
 
 const EditEventPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
 
-  if (!id) return notFound();
+  if (!params?.id) return notFound();
 
-  const { isLoading, data } = api.event.getEventByEventId.useQuery(id);
+  const { isLoading, data } = api.event.getEventByEventId.useQuery(params.id);
   if (isLoading) {
     return (
       <ContentLayoutSkeleton>

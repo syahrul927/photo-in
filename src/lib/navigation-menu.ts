@@ -36,6 +36,11 @@ export const NavigationMainConstant: NavigationType[] = [
         title: "Event Details",
         hide: true,
       },
+      {
+        url: PAGE_URLS.EVENTS_UPLOAD_PHOTO("*"),
+        title: "Upload Photo",
+        hide: true,
+      },
     ],
   },
 ];
@@ -64,12 +69,12 @@ export const NavigationSettingsConstant: Omit<
   NavigationType,
   "code" | "icon"
 >[] = [
-    {
-      title: "Information",
-      url: PAGE_URLS.SETTINGS,
-    },
-    {
-      title: "Members",
-      url: PAGE_URLS.SETTINGS_MEMBER,
-    },
-  ];
+  {
+    title: "Information",
+    url: PAGE_URLS.SETTINGS,
+  },
+  {
+    title: "Members",
+    url: PAGE_URLS.SETTINGS_MEMBER,
+  },
+];

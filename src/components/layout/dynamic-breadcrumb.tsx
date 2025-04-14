@@ -27,7 +27,7 @@ export function DynamicBreadCrumb({ className }: BreadcrumbNavProps) {
   const pathname = usePathname();
   const breadcrumb = getBreadcrumbs(
     [...NavigationMainConstant, ...NavigationSecondaryConstant],
-    pathname,
+    pathname!,
   );
 
   return (

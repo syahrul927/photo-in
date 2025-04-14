@@ -36,6 +36,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
+import { PAGE_URLS } from "@/lib/page-url";
+import { useParams } from "next/navigation";
 
 const event = {
   id: 1,
@@ -74,11 +77,11 @@ const ImageWithFallback = ({
   return (
     <div className="relative h-full w-full">
       {isLoading && !error && (
-        <div className="absolute inset-0 animate-pulse bg-muted" />
+        <div className="bg-muted absolute inset-0 animate-pulse" />
       )}
       {error ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <span className="text-sm text-muted-foreground">
+        <div className="bg-muted absolute inset-0 flex items-center justify-center">
+          <span className="text-muted-foreground text-sm">
             Failed to load image
           </span>
         </div>
@@ -93,8 +96,9 @@ const ImageWithFallback = ({
             // Fallback to placeholder if image fails to load
             setImgSrc("/placeholder.svg");
           }}
-          className={`transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
-            }`}
+          className={`transition-opacity duration-300 ${
+            isLoading ? "opacity-0" : "opacity-100"
+          }`}
           {...props}
         />
       )}
@@ -114,6 +118,7 @@ const generatePhotos = (count: number) =>
   }));
 
 export default function GalleryView() {
+  const params = useParams<{ id: string }>();
   const [photos, setPhotos] = useState<
     Array<{
       id: number;
@@ -141,7 +146,7 @@ export default function GalleryView() {
                 <h1 className="text-3xl font-bold tracking-tight">
                   {event.title}
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-muted-foreground text-lg">
                   {event.clientName}
                 </p>
               </div>
@@ -159,15 +164,15 @@ export default function GalleryView() {
 
             <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Calendar className="text-muted-foreground h-4 w-4" />
                 <span>{format(event.date, "PPP")}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <MapPin className="text-muted-foreground h-4 w-4" />
                 <span>{event.location}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <Users className="text-muted-foreground h-4 w-4" />
                 <span>{event.contributors.length} Contributors</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -214,10 +219,14 @@ export default function GalleryView() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button>
-                <ImagePlus className="mr-2 h-4 w-4" />
-                Upload Photo
-              </Button>
+              {params?.id ? (
+                <Button asChild>
+                  <Link href={PAGE_URLS.EVENTS_UPLOAD_PHOTO(params.id)}>
+                    <ImagePlus className="mr-2 h-4 w-4" />
+                    Upload Photo
+                  </Link>
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>
@@ -225,10 +234,11 @@ export default function GalleryView() {
         {/* Photo Gallery */}
         <div className="container py-8">
           <motion.div
-            className={`grid gap-4 ${viewMode === "grid"
+            className={`grid gap-4 ${
+              viewMode === "grid"
                 ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                 : "grid-cols-2 md:grid-cols-3"
-              }`}
+            }`}
           >
             {photos.map((photo, index) => (
               <motion.div
@@ -256,7 +266,7 @@ export default function GalleryView() {
                         />
                       </div>
                       <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center space-x-4">
                               <div className="flex items-center">

@@ -16,6 +16,12 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    GCP_PROJECT_ID: z.string(),
+    GCP_PROJECT_NUMBER: z.string(),
+    GCP_SERVICE_ACCOUNT_EMAIL: z.string(),
+    GCP_WORKLOAD_IDENTITY_POOL_ID: z.string(),
+    GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID: z.string(),
+    GOOGLE_DRIVE_FOLDER: z.string(),
   },
 
   /**
@@ -36,6 +42,13 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,
     TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
+    GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
+    GCP_PROJECT_NUMBER: process.env.GCP_PROJECT_NUMBER,
+    GCP_SERVICE_ACCOUNT_EMAIL: process.env.GCP_SERVICE_ACCOUNT_EMAIL,
+    GCP_WORKLOAD_IDENTITY_POOL_ID: process.env.GCP_WORKLOAD_IDENTITY_POOL_ID,
+    GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID:
+      process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID,
+    GOOGLE_DRIVE_FOLDER: process.env.GOOGLE_DRIVE_FOLDER,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
