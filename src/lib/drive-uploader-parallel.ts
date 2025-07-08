@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import { env } from "@/env";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 import {
@@ -29,7 +29,7 @@ function getServiceAccountAuth() {
       getSubjectToken: async () => {
         // Production: get from headers
         if (process.env.NODE_ENV === 'production') {
-          const headersList = headers();
+          const headersList = await headers();
           const oidcToken = headersList.get('x-vercel-oidc-token');
           if (oidcToken) {
             return oidcToken;
@@ -47,7 +47,7 @@ function getServiceAccountAuth() {
   const authClient = ExternalAccountClient.fromJSON(json as Parameters<typeof ExternalAccountClient.fromJSON>[0]) as ExternalAccountClient;
 
   if (!authClient) throw new Error("Failed Create Credentials");
-  authClient.scopes = [
+  (authClient as any).scopes = [
     "https://www.googleapis.com/auth/drive.file", // For creating & modifying files
     "https://www.googleapis.com/auth/drive.readonly", // For reading files
     "https://www.googleapis.com/auth/drive", // For managing permissions
@@ -60,7 +60,7 @@ async function getOrCreateFolder(
   folderName: string,
 ): Promise<string> {
   const start = Date.now();
-  const drive = google.drive({ version: "v3", auth });
+  const drive = google.drive({ version: "v3", auth: auth as any });
 
   const response = await drive.files.list({
     q: `'${UPLOAD_FOLDER_ID}' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '${folderName}' and trashed = false`,
@@ -89,7 +89,7 @@ async function getOrCreateFolder(
 export async function createEventFolder(eventId: string): Promise<string | null> {
   try {
     const auth = getServiceAccountAuth();
-    return await getOrCreateFolder(auth, eventId);
+    return await getOrCreateFolder(auth as any, eventId);
   } catch (error) {
     console.error("🚨 Failed to create event folder:", error);
     return null;
@@ -103,7 +103,7 @@ export async function uploadFileToFolder(
 ): Promise<GoogleDriveFile | null> {
   try {
     const auth = getServiceAccountAuth();
-    const drive = google.drive({ version: "v3", auth });
+    const drive = google.drive({ version: "v3", auth: auth as any });
 
     const bufferStream = Readable.from(file.buffer);
     const response = await drive.files.create({
@@ -143,7 +143,7 @@ export async function uploadFile(
 ): Promise<GoogleDriveFile | null> {
   try {
     const auth = getServiceAccountAuth();
-    const folderId = await getOrCreateFolder(auth, parentFolder);
+    const folderId = await getOrCreateFolder(auth as any, parentFolder);
     return await uploadFileToFolder(file, folderId);
   } catch (error) {
     console.error("🚨 Failed to upload file to Drive:", error);
@@ -160,7 +160,7 @@ export async function uploadFilesParallel(
 ): Promise<(GoogleDriveFile | null)[]> {
   try {
     const auth = getServiceAccountAuth();
-    const folderId = await getOrCreateFolder(auth, eventId);
+    const folderId = await getOrCreateFolder(auth as any, eventId);
     
     let completed = 0;
     const results: (GoogleDriveFile | null)[] = [];

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import { env } from "@/env";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 import {
@@ -35,7 +35,7 @@ function getServiceAccountAuth() {
         getSubjectToken: async () => {
           // Production: get from headers
           if (process.env.NODE_ENV === 'production') {
-            const headersList = headers();
+            const headersList = await headers();
             const oidcToken = headersList.get('x-vercel-oidc-token');
             if (oidcToken) {
               return oidcToken;
@@ -53,7 +53,7 @@ function getServiceAccountAuth() {
     const authClient = ExternalAccountClient.fromJSON(json as Parameters<typeof ExternalAccountClient.fromJSON>[0]) as ExternalAccountClient;
 
     if (!authClient) throw new Error("Failed Create Credentials");
-    authClient.scopes = [
+    (authClient as any).scopes = [
       "https://www.googleapis.com/auth/drive.readonly", // For reading files
     ];
     return authClient;
@@ -70,7 +70,7 @@ async function getFolderId(
   auth: BaseExternalAccountClient,
   folderName: string,
 ): Promise<string | null> {
-  const drive = google.drive({ version: "v3", auth });
+  const drive = google.drive({ version: "v3", auth: auth as any });
 
   const response = await drive.files.list({
     q: `'${UPLOAD_FOLDER_ID}' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '${folderName}' and trashed = false`,
@@ -87,10 +87,10 @@ export async function getImagesFromFolder(
 ): Promise<GoogleDriveImage[]> {
   try {
     const auth = getServiceAccountAuth();
-    const drive = google.drive({ version: "v3", auth });
+    const drive = google.drive({ version: "v3", auth: auth as any });
 
     // Get the folder ID for this event
-    const folderId = await getFolderId(auth, eventId);
+    const folderId = await getFolderId(auth as any, eventId);
     
     if (!folderId) {
       console.log(`No folder found for event: ${eventId}`);
