@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return */
 import { env } from "@/env";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 import {
