@@ -1,9 +1,10 @@
 import { env } from "@/env";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 import {
-  BaseExternalAccountClient,
+  type BaseExternalAccountClient,
   ExternalAccountClient,
 } from "google-auth-library";
+import { headers } from "next/headers";
 import { google } from "googleapis";
 import { Readable } from "stream";
 
@@ -24,10 +25,25 @@ function getServiceAccountAuth() {
     service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${env.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
 
     subject_token_supplier: {
-      getSubjectToken: getVercelOidcToken,
+      getSubjectToken: async () => {
+        // Production: get from headers
+        if (process.env.NODE_ENV === 'production') {
+          const headersList = headers();
+          const oidcToken = headersList.get('x-vercel-oidc-token');
+          if (oidcToken) {
+            return oidcToken;
+          }
+          throw new Error('OIDC token not found in production headers');
+        }
+        
+        // Development: use SDK function
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+        return await getVercelOidcToken();
+      },
     },
   };
-  const authClient = ExternalAccountClient.fromJSON(json);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+  const authClient = ExternalAccountClient.fromJSON(json as Parameters<typeof ExternalAccountClient.fromJSON>[0]) as ExternalAccountClient;
 
   if (!authClient) throw new Error("Failed Create Credentials");
   authClient.scopes = [
@@ -104,8 +120,10 @@ export async function uploadFile(
 
     return response.data as GoogleDriveFile;
   } catch (error) {
-    console.log("env: ", await getVercelOidcToken());
-    console.error("🚨 Failed to upload file to Drive:", error);
+    console.error("Failed to upload file to Drive:", error);
+    if (error instanceof Error && error.message.includes('x-vercel-oidc-token')) {
+      console.error("OIDC Token Error: Make sure OIDC is enabled in Vercel project settings");
+    }
     return null;
   }
 }
