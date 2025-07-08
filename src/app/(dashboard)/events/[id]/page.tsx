@@ -44,7 +44,6 @@ import {
   generateDirectImageUrl,
   generateThumbnailUrl,
   getImageUrlFromWebContentLink,
-  generateProxyImageUrl,
 } from "@/lib/drive-utils";
 
 const event = {
