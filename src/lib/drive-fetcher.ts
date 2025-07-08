@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 import {
-  BaseExternalAccountClient,
+  type BaseExternalAccountClient,
   ExternalAccountClient,
 } from "google-auth-library";
 import { google } from "googleapis";
@@ -20,25 +20,33 @@ interface GoogleDriveImage {
 }
 
 function getServiceAccountAuth() {
-  const json = {
-    universe_domain: "googleapis.com",
-    type: "external_account",
-    audience: `//iam.googleapis.com/projects/${env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${env.GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`,
-    subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
-    token_url: "https://sts.googleapis.com/v1/token",
-    service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${env.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+  try {
+    const json = {
+      universe_domain: "googleapis.com",
+      type: "external_account",
+      audience: `//iam.googleapis.com/projects/${env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${env.GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`,
+      subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
+      token_url: "https://sts.googleapis.com/v1/token",
+      service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${env.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
 
-    subject_token_supplier: {
-      getSubjectToken: getVercelOidcToken,
-    },
-  };
-  const authClient = ExternalAccountClient.fromJSON(json);
+      subject_token_supplier: {
+        getSubjectToken: getVercelOidcToken,
+      },
+    };
+    const authClient = ExternalAccountClient.fromJSON(json);
 
-  if (!authClient) throw new Error("Failed Create Credentials");
-  authClient.scopes = [
-    "https://www.googleapis.com/auth/drive.readonly", // For reading files
-  ];
-  return authClient;
+    if (!authClient) throw new Error("Failed Create Credentials");
+    authClient.scopes = [
+      "https://www.googleapis.com/auth/drive.readonly", // For reading files
+    ];
+    return authClient;
+  } catch (error) {
+    console.error("OIDC Authentication failed:", error);
+    throw new Error(
+      "OIDC authentication failed. Please ensure OIDC is enabled in your Vercel project settings. " +
+      "Go to Vercel Dashboard > Project Settings > General > Enable OIDC Token."
+    );
+  }
 }
 
 async function getFolderId(
@@ -94,6 +102,9 @@ export async function getImagesFromFolder(
     }));
   } catch (error) {
     console.error("Failed to fetch images from Drive:", error);
+    if (error instanceof Error && error.message.includes('x-vercel-oidc-token')) {
+      console.error("OIDC Token Error: Make sure OIDC is enabled in Vercel project settings");
+    }
     return [];
   }
 }
