@@ -123,7 +123,6 @@ export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     const keyWorkspace = getWorkspaceHeader(ctx.headers);
-    console.log("keyWorkspace", keyWorkspace);
     if (!ctx.session || !ctx.session.user || !keyWorkspace) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
@@ -136,7 +135,6 @@ export const protectedProcedure = t.procedure
 
     return next({
       ctx: {
-        // infers the `session` as non-nullable
         session: {
           ...ctx.session,
           user: ctx.session.user,

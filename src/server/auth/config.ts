@@ -5,7 +5,7 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { and, asc, eq } from "drizzle-orm";
 import { User, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { membership, user, workspace } from "../db/schemas/schema";
+import { membership, user, workspace } from "@/server/db/schemas";
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *

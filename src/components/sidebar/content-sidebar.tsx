@@ -21,7 +21,7 @@ export function ContentSidebar({
   return (
     <nav
       className={cn(
-        "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
+        "flex max-w-[75%] space-x-2 lg:flex-col lg:space-y-1 lg:space-x-0",
         className,
       )}
       {...props}

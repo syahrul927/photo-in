@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,12 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
 import { PAGE_URLS } from "@/lib/page-url";
 import { EventStatusType } from "@/types/event-status";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, MoreVertical, Users } from "lucide-react";
+import { Calendar, MapPin, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { BadgeList } from "./badge-list";
 
@@ -107,59 +105,6 @@ export const EventCard = (props: EventCardProps) => {
                 </Badge>
                 <div className="flex flex-wrap gap-1">
                   <BadgeList categories={props.categories} maxVisible={2} />
-                </div>
-              </div>
-
-              {props.status !== "upcoming" && (
-                <div className="hidden space-y-2">
-                  <span className="sr-only">
-                    This is hidden cuz not ready yet for showing upload progress
-                    field
-                  </span>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Upload Progress
-                    </span>
-                    <span className="font-medium">{20}%</span>
-                  </div>
-                  <Progress value={20} className="h-1" />
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Photos</span>
-                    <span className="font-medium">
-                      {props.targetTotalPhotos}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex hidden items-center justify-between pt-2">
-                <span className="sr-only">
-                  this is not ready yet for relation uploader, hard code only
-                </span>
-                <div className="flex -space-x-2">
-                  <Avatar className="border-background border-2">
-                    <AvatarFallback>
-                      {"srtfk"
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  {[{ avatar: "", name: "" }].map((member, i) => (
-                    <Avatar key={i} className="border-background border-2">
-                      <AvatarImage src={member.avatar} alt={member.name} />
-                      <AvatarFallback>
-                        {member.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
-                <div className="text-muted-foreground flex items-center text-sm">
-                  <Users className="mr-1 h-4 w-4" />
-                  {2}
                 </div>
               </div>
             </div>

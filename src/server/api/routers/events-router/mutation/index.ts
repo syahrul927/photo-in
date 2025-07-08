@@ -1,10 +1,11 @@
 import { protectedProcedure } from "@/server/api/trpc";
-import { event } from "@/server/db/schemas/schema";
+import { event } from "@/server/db/schemas";
 import { toISOString } from "@/server/db/transformers/database-utils";
 import { createInsertEventSchema } from "@/server/db/transformers/event";
 import { and, eq } from "drizzle-orm";
 import { inputUpdateStatusEvent, inputUpsertEvent } from "./type";
 import { TRPCError } from "@trpc/server";
+import { createEventFolder } from "@/lib/drive-uploader-parallel";
 
 export const updateStatusEvent = protectedProcedure
   .input(inputUpdateStatusEvent)
@@ -73,6 +74,15 @@ export const upsertEvent = protectedProcedure
         createdAt: toISOString(new Date()),
       })
       .returning();
+
+    // Pre-create Google Drive folder for the event
+    try {
+      await createEventFolder(newEvent.id);
+      console.log(`Created Google Drive folder for event: ${newEvent.id}`);
+    } catch (error) {
+      console.warn(`Failed to create Google Drive folder for event ${newEvent.id}:`, error);
+      // Don't fail the event creation if folder creation fails
+    }
 
     return newEvent;
   });

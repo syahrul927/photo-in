@@ -1,5 +1,5 @@
 import { protectedProcedure } from "@/server/api/trpc";
-import { invitation } from "@/server/db/schemas/schema";
+import { invitation } from "@/server/db/schemas";
 import { InvitationStatusType } from "@/types/invitation-status";
 import { z } from "zod";
 

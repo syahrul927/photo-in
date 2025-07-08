@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Image, { ImageProps } from "next/image";
 import { useEffect, useState } from "react";
+import { api } from "@/trpc/react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,12 @@ import {
 import Link from "next/link";
 import { PAGE_URLS } from "@/lib/page-url";
 import { useParams } from "next/navigation";
+import {
+  generateDirectImageUrl,
+  generateThumbnailUrl,
+  getImageUrlFromWebContentLink,
+  generateProxyImageUrl,
+} from "@/lib/drive-utils";
 
 const event = {
   id: 1,
@@ -61,18 +68,40 @@ const event = {
 const ImageWithFallback = ({
   src,
   alt,
+  fallbackUrls = [],
   ...props
-}: { src: string; alt: string } & ImageProps) => {
-  const [imgSrc, setImgSrc] = useState<string>(src);
+}: { src: string; alt: string; fallbackUrls?: string[] } & ImageProps) => {
+  const [currentSrcIndex, setCurrentSrcIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // Create array of all possible sources
+  const allSources = [src, ...fallbackUrls, "/placeholder.svg"].filter(
+    Boolean,
+  ) as string[];
+  const currentSrc = allSources[currentSrcIndex] || "/placeholder.svg";
+
   useEffect(() => {
     // Reset states when src changes
+    setCurrentSrcIndex(0);
     setIsLoading(true);
     setError(false);
-    setImgSrc(src);
   }, [src]);
+
+  const handleError = () => {
+    console.warn(`Failed to load image: ${currentSrc}`);
+
+    // Try next fallback URL
+    if (currentSrcIndex < allSources.length - 1) {
+      setCurrentSrcIndex((prev) => prev + 1);
+      setIsLoading(true);
+      setError(false);
+    } else {
+      // All sources failed
+      setError(true);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="relative h-full w-full">
@@ -81,24 +110,23 @@ const ImageWithFallback = ({
       )}
       {error ? (
         <div className="bg-muted absolute inset-0 flex items-center justify-center">
-          <span className="text-muted-foreground text-sm">
-            Failed to load image
-          </span>
+          <ImagePlus className="text-muted-foreground h-8 w-8" />
         </div>
       ) : (
         <Image
-          src={imgSrc || "/placeholder.svg"}
+          src={currentSrc}
           alt={alt}
-          onLoadingComplete={() => setIsLoading(false)}
-          onError={() => {
-            setError(true);
+          onLoadingComplete={() => {
             setIsLoading(false);
-            // Fallback to placeholder if image fails to load
-            setImgSrc("/placeholder.svg");
+            if (currentSrcIndex > 0) {
+              console.log(
+                `Image loaded successfully using fallback ${currentSrcIndex}: ${currentSrc}`,
+              );
+            }
           }}
-          className={`transition-opacity duration-300 ${
-            isLoading ? "opacity-0" : "opacity-100"
-          }`}
+          onError={handleError}
+          className={`transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
+            }`}
           {...props}
         />
       )}
@@ -106,34 +134,64 @@ const ImageWithFallback = ({
   );
 };
 
-// Generate photos array with your API URLs
-const generatePhotos = (count: number) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    // Replace this URL with your actual API URL
-    url: `https://picsum.photos/${600 + (i % 3) * 100}/${800 + (i % 2) * 100}`,
-    likes: Math.floor(Math.random() * 50),
-    comments: Math.floor(Math.random() * 20),
-    views: Math.floor(Math.random() * 1000),
-  }));
+// Note: Now using tRPC to fetch photos from database instead of Google Drive API
 
 export default function GalleryView() {
   const params = useParams<{ id: string }>();
-  const [photos, setPhotos] = useState<
-    Array<{
-      id: number;
-      url: string;
-      likes: number;
-      comments: number;
-      views: number;
-    }>
-  >([]);
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("grid");
 
-  useEffect(() => {
-    // Initialize photos
-    setPhotos(generatePhotos(48));
-  }, []);
+  // Use tRPC to fetch event and photos from database
+  const { data: eventData, isLoading: eventLoading } =
+    api.event.getEventByEventId.useQuery(params?.id ?? "", {
+      enabled: !!params?.id,
+    });
+
+  const {
+    data: photosData,
+    isLoading: photosLoading,
+    error: queryError,
+  } = api.event.getPhotosByEventId.useQuery(params?.id ?? "", {
+    enabled: !!params?.id,
+  });
+
+  const isLoading = eventLoading || photosLoading;
+
+  // Transform database photos to the format expected by the UI
+  const photos =
+    photosData?.map((photo) => {
+      const metadata = photo.metaData as any;
+      // Use the direct URL from database for both main and thumbnail
+      const directUrl = photo.url;
+
+      return {
+        id: photo.cloudId,
+        url: directUrl,
+        thumbnailUrl: directUrl, // Use same URL for thumbnail
+        fallbackUrls: [directUrl],
+        name: photo.title || metadata?.originalName || `Photo ${photo.id}`,
+        likes: Math.floor(Math.random() * 50), // You can replace this with real data later
+        comments: Math.floor(Math.random() * 20), // You can replace this with real data later
+        views: Math.floor(Math.random() * 1000), // You can replace this with real data later
+        createdTime: photo.createdAt?.toISOString() || new Date().toISOString(),
+        size: metadata?.size?.toString() || "0",
+        uploader: photo.uploader,
+      };
+    }) || [];
+
+  const error = queryError?.message || null;
+
+  // Create event object for UI compatibility
+  const event = eventData
+    ? {
+      title: eventData.name || "Untitled Event",
+      date: eventData.date || new Date(),
+      location: eventData.location || "No location specified",
+      clientName: eventData.clientName || "No client specified",
+      categories: eventData.categories || [],
+      type: "Photography Event",
+      contributors: [], // You can add this data later
+    }
+    : null;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -144,10 +202,10 @@ export default function GalleryView() {
             <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
               <div className="space-y-1">
                 <h1 className="text-3xl font-bold tracking-tight">
-                  {event.title}
+                  {event?.title || "Loading..."}
                 </h1>
                 <p className="text-muted-foreground text-lg">
-                  {event.clientName}
+                  {event?.clientName || "Loading..."}
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -162,29 +220,31 @@ export default function GalleryView() {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="text-muted-foreground h-4 w-4" />
-                <span>{format(event.date, "PPP")}</span>
+            {event && (
+              <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="text-muted-foreground h-4 w-4" />
+                  <span>{format(event.date, "PPP")}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="text-muted-foreground h-4 w-4" />
+                  <span>{event.location}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="text-muted-foreground h-4 w-4" />
+                  <span>{event.contributors.length} Contributors</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-500/10 text-green-500"
+                  >
+                    {photos.length} Photos
+                  </Badge>
+                  <Badge variant="outline">{event.type}</Badge>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="text-muted-foreground h-4 w-4" />
-                <span>{event.location}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Users className="text-muted-foreground h-4 w-4" />
-                <span>{event.contributors.length} Contributors</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge
-                  variant="secondary"
-                  className="bg-green-500/10 text-green-500"
-                >
-                  {event.totalPhotos} Photos
-                </Badge>
-                <Badge variant="outline">{event.type}</Badge>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -233,102 +293,134 @@ export default function GalleryView() {
 
         {/* Photo Gallery */}
         <div className="container py-8">
-          <motion.div
-            className={`grid gap-4 ${
-              viewMode === "grid"
-                ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                : "grid-cols-2 md:grid-cols-3"
-            }`}
-          >
-            {photos.map((photo, index) => (
-              <motion.div
-                key={photo.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                className={
-                  viewMode === "masonry"
-                    ? `${index % 3 === 1 ? "mt-8" : ""}`
-                    : ""
-                }
-              >
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <div className="group relative cursor-pointer overflow-hidden rounded-lg">
-                      <div className="relative aspect-[4/3] w-full">
-                        <ImageWithFallback
-                          src={photo.url || "/placeholder.svg"}
-                          alt={`Photo ${photo.id}`}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          priority={index < 4} // Prioritize loading for first 4 images
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-4">
-                              <div className="flex items-center">
-                                <Heart className="mr-1 h-4 w-4" />
-                                <span>{photo.likes}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <MessageCircle className="mr-1 h-4 w-4" />
-                                <span>{photo.comments}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <Eye className="mr-1 h-4 w-4" />
-                                <span>{photo.views}</span>
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {Array.from({ length: 12 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-muted relative aspect-[4/3] w-full animate-pulse rounded-lg"
+                />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="flex min-h-48 items-center justify-center">
+              <p className="text-muted-foreground text-center">{error}</p>
+            </div>
+          ) : photos.length === 0 ? (
+            <div className="flex min-h-48 items-center justify-center">
+              <p className="text-muted-foreground text-center">
+                No photos found in this event folder. Upload some photos to get
+                started!
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              className={`grid gap-4 ${viewMode === "grid"
+                  ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                  : "grid-cols-2 md:grid-cols-3"
+                }`}
+            >
+              {photos.map((photo, index) => (
+                <motion.div
+                  key={photo.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className={
+                    viewMode === "masonry"
+                      ? `${index % 3 === 1 ? "mt-8" : ""}`
+                      : ""
+                  }
+                >
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <div className="group relative cursor-pointer overflow-hidden rounded-lg">
+                        <div className="relative aspect-[4/3] w-full">
+                          <ImageWithFallback
+                            src={
+                              photo.thumbnailUrl ||
+                              photo.url ||
+                              "/placeholder.svg"
+                            }
+                            alt={photo.name || `Photo ${photo.id}`}
+                            fallbackUrls={photo.fallbackUrls}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            priority={index < 4} // Prioritize loading for first 4 images
+                          />
+                        </div>
+                        <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex items-center">
+                                  <Heart className="mr-1 h-4 w-4" />
+                                  <span>{photo.likes}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <MessageCircle className="mr-1 h-4 w-4" />
+                                  <span>{photo.comments}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Eye className="mr-1 h-4 w-4" />
+                                  <span>{photo.views}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl">
-                    <DialogHeader>
-                      <DialogTitle>Photo View</DialogTitle>
-                      <DialogDescription>
-                        Photo {photo.id} from {event.title}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-                      <ImageWithFallback
-                        src={photo.url || "/placeholder.svg"}
-                        alt={`Photo ${photo.id}`}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 1200px) 100vw, 1200px"
-                        priority
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center">
-                          <Heart className="mr-1 h-4 w-4" />
-                          <span>{photo.likes}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <MessageCircle className="mr-1 h-4 w-4" />
-                          <span>{photo.comments}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Eye className="mr-1 h-4 w-4" />
-                          <span>{photo.views}</span>
-                        </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl">
+                      <DialogHeader>
+                        <DialogTitle>{photo.name}</DialogTitle>
+                        <DialogDescription>
+                          {photo.name} from {event?.title || "Event"} -{" "}
+                          {new Date(photo.createdTime).toLocaleDateString()} -{" "}
+                          {Math.round(
+                            (parseInt(photo.size) / 1024 / 1024) * 100,
+                          ) / 100}{" "}
+                          MB
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+                        <ImageWithFallback
+                          src={photo.url || "/placeholder.svg"}
+                          alt={photo.name || `Photo ${photo.id}`}
+                          fallbackUrls={photo.fallbackUrls}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 1200px) 100vw, 1200px"
+                          priority
+                        />
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </motion.div>
-            ))}
-          </motion.div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center">
+                            <Heart className="mr-1 h-4 w-4" />
+                            <span>{photo.likes}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <MessageCircle className="mr-1 h-4 w-4" />
+                            <span>{photo.comments}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Eye className="mr-1 h-4 w-4" />
+                            <span>{photo.views}</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

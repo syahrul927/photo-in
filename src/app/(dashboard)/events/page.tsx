@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Filter, ImageIcon, Search } from "lucide-react";
+import { Filter, ImageIcon, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 
 import ContentLayout from "@/components/layout/content-layout";
@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/select";
 import { EventCategories } from "@/lib/event-categories";
 import { api } from "@/trpc/react";
-import { CreateEventButton, EventCard } from "@/features/events";
+import {
+  CreateEventButton,
+  EventCard,
+  EventCardSkeleton,
+} from "@/features/events";
 import EventStatusDialog from "@/features/events/event-status-dialog/event-status-dialog";
 import { EventStatusType } from "@/types/event-status";
 import { useToast } from "@/hooks/use-toast";
@@ -31,8 +35,11 @@ export default function EventPage() {
   }>();
   const { toast } = useToast();
 
-  const { data: events, refetch: reloadEvent } =
-    api.event.getEventsByWorkspace.useQuery();
+  const {
+    data: events,
+    refetch: reloadEvent,
+    isLoading,
+  } = api.event.getEventsByWorkspace.useQuery();
 
   const filteredEvents =
     events?.filter((event) => {
@@ -142,13 +149,18 @@ export default function EventPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        {filteredEvents.length == 0 && (
-          <div className="flex min-h-48 items-center justify-center md:col-span-2 lg:col-span-3">
-            <p className="text-muted-foreground text-center">
-              No events found. Please check back later or adjust your filters.
-            </p>
-          </div>
-        )}
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <EventCardSkeleton key={index} index={index} />
+            ))
+          : filteredEvents.length == 0 && (
+              <div className="flex min-h-48 items-center justify-center md:col-span-2 lg:col-span-3">
+                <p className="text-muted-foreground text-center">
+                  No events found. Please check back later or adjust your
+                  filters.
+                </p>
+              </div>
+            )}
         {filteredEvents.map((event, index) => (
           <EventCard
             key={event.id}

@@ -1,5 +1,5 @@
 import { protectedProcedure } from "@/server/api/trpc";
-import { event } from "@/server/db/schemas/schema";
+import { event, photo, user } from "@/server/db/schemas";
 import { EventStatusType } from "@/types/event-status";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -47,4 +47,52 @@ export const getEventByEventId = protectedProcedure
         ? Number(selected.targetTotalPhotos)
         : undefined,
     };
+  });
+
+export const getPhotosByEventId = protectedProcedure
+  .input(z.string())
+  .query(async ({ ctx: { db, session }, input: eventId }) => {
+    const { currentWorkspace } = session;
+
+    // First verify the event belongs to the current workspace
+    const eventExists = await db.query.event.findFirst({
+      where: and(
+        eq(event.id, eventId),
+        eq(event.workspaceId, currentWorkspace.workspaceId),
+      ),
+    });
+
+    if (!eventExists) return [];
+
+    // Get photos for the event with uploader information
+    const photos = await db
+      .select({
+        id: photo.id,
+        cloudId: photo.cloudId,
+        title: photo.title,
+        description: photo.description,
+        url: photo.url,
+        metaData: photo.metaData,
+        createdAt: photo.createdAt,
+        uploader: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+      })
+      .from(photo)
+      .leftJoin(user, eq(photo.uploadedBy, user.id))
+      .where(eq(photo.eventId, eventId))
+      .orderBy(desc(photo.createdAt));
+
+    return photos.map((p) => ({
+      id: p.id,
+      cloudId: p.cloudId,
+      title: p.title,
+      description: p.description,
+      url: p.url,
+      metaData: p.metaData ? JSON.parse(p.metaData) : null,
+      createdAt: p.createdAt ? new Date(p.createdAt) : null,
+      uploader: p.uploader,
+    }));
   });

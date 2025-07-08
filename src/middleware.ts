@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!session?.user;
 
   const isLoginRoute = nextUrl.pathname.startsWith(LOGIN_ROUTE);
-  console.log("pathname", nextUrl.pathname);
   if (isAuthenticated && isLoginRoute) {
     return NextResponse.redirect(new URL(ROOT, request.url));
   }

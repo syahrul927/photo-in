@@ -10,8 +10,8 @@ const dbCredentials: { url: string; authToken?: string } = {
 export default {
   out: "./src/server/db/migrations/",
   schema: [
-    "./src/server/db/schemas/schema.ts",
-    "./src/server/db/schemas/relations.ts",
+    "./src/server/db/schemas/index.ts",
+    "./src/server/db/relations/index.ts",
   ],
   dialect: "turso",
   dbCredentials,

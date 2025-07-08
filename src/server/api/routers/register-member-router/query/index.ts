@@ -1,5 +1,5 @@
 import { publicProcedure } from "@/server/api/trpc";
-import { invitation } from "@/server/db/schemas/schema";
+import { invitation } from "@/server/db/schemas";
 import { InvitationStatusType } from "@/types/invitation-status";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";

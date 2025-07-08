@@ -4,7 +4,7 @@ import {
   validateInvitationEmailKeyRequestSchema,
 } from "./type";
 import { eq, InferSelectModel } from "drizzle-orm";
-import { invitation, membership, user } from "@/server/db/schemas/schema";
+import { invitation, membership, user } from "@/server/db/schemas/";
 import { TRPCError } from "@trpc/server";
 import { hashPassword } from "@/lib/password-utils";
 import { toISOString } from "@/server/db/transformers/database-utils";

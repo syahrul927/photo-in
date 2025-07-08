@@ -2,8 +2,8 @@ import { createClient, type Client } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
 import { env } from "@/env";
-import * as schemas from "./schemas/schema";
-import * as relations from "./schemas/relations";
+import * as schemas from "./schemas/";
+import * as relations from "./schemas/";
 
 const schema = {
   ...schemas,

@@ -1,7 +1,7 @@
 import { protectedProcedure } from "@/server/api/trpc";
 import { MemberViewType } from "./type";
 import { and, eq, ne } from "drizzle-orm";
-import { invitation, membership, user } from "@/server/db/schemas/schema";
+import { invitation, membership, user } from "@/server/db/schemas";
 import { InvitationStatusType } from "@/types/invitation-status";
 
 export const getListMemberPending = protectedProcedure.query(

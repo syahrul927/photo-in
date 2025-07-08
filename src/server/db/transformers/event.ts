@@ -4,8 +4,8 @@ import {
   zStringArrayToJSONString,
 } from "./database-utils";
 import { createInsertSchema } from "drizzle-zod";
-import { event } from "../schemas/schema";
 import { z } from "zod";
+import { event } from "../schemas";
 
 const inputInsertEventSchema = z.object({
   id: z.string().optional(), // Used for update

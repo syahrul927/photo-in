@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import { useMutation } from "@tanstack/react-query";
+import { getSession } from "next-auth/react";
+import { CURRENT_WORKSPACE } from "@/lib/workspace-utils";
 
 // Form schema
 const formSchema = z.object({
@@ -34,10 +36,22 @@ type BulkUploadResponseType = {
   };
 };
 
+const getHeader = async () => {
+  const headers = new Headers();
+  let currentWorkspace = localStorage.getItem(CURRENT_WORKSPACE);
+  if (!currentWorkspace) {
+    const session = await getSession();
+    currentWorkspace = session?.user.workspaces?.[0]?.keyWorkspace ?? "";
+    localStorage.setItem(CURRENT_WORKSPACE, currentWorkspace);
+  }
+  headers.set(CURRENT_WORKSPACE, currentWorkspace);
+  return headers;
+};
 async function uploadFiles(formData: FormData) {
   const response = await fetch("/api/upload/bulk", {
     method: "POST",
     body: formData,
+    headers: await getHeader(),
   });
 
   if (!response.ok) {
@@ -48,7 +62,11 @@ async function uploadFiles(formData: FormData) {
   return response.json() as BulkUploadResponseType;
 }
 
-export function ImageUploader() {
+interface ImageUploaderProps {
+  eventId: string;
+}
+
+export function ImageUploader(props: ImageUploaderProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -105,12 +123,14 @@ export function ImageUploader() {
       if (file) {
         const formData = new FormData();
         formData.append("images", file);
+        formData.append("eventId", props.eventId);
         await uploadMutation(formData);
       }
     }
     setIsUploading(false);
     setUploadComplete(true);
   };
+  const testing = async () => {};
 
   return (
     <Form {...form}>
