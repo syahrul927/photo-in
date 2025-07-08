@@ -75,6 +75,13 @@ export const upsertEvent = protectedProcedure
       })
       .returning();
 
+    if (!newEvent) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create event",
+      });
+    }
+
     // Pre-create Google Drive folder for the event
     try {
       await createEventFolder(newEvent.id);

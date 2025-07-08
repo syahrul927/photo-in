@@ -83,14 +83,14 @@ export async function getImagesFromFolder(
     const files = response.data.files || [];
     
     return files.map((file) => ({
-      id: file.id!,
-      name: file.name!,
-      webViewLink: file.webViewLink!,
-      webContentLink: file.webContentLink!,
-      thumbnailLink: file.thumbnailLink,
-      createdTime: file.createdTime!,
-      modifiedTime: file.modifiedTime!,
-      size: file.size!,
+      id: file.id || '',
+      name: file.name || 'Unknown',
+      webViewLink: file.webViewLink || '',
+      webContentLink: file.webContentLink || '',
+      thumbnailLink: file.thumbnailLink || undefined,
+      createdTime: file.createdTime || '',
+      modifiedTime: file.modifiedTime || '',
+      size: file.size || '0',
     }));
   } catch (error) {
     console.error("Failed to fetch images from Drive:", error);
