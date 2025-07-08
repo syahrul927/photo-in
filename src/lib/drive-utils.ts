@@ -8,7 +8,7 @@ export function generateDirectImageUrl(fileId: string): string {
 
 // Generate a thumbnail URL
 // For public files, use the thumbnail endpoint
-export function generateThumbnailUrl(fileId: string, size: number = 400): string {
+export function generateThumbnailUrl(fileId: string, size = 400): string {
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=s${size}`;
 }
 

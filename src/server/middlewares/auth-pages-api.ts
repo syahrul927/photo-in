@@ -12,7 +12,7 @@ export interface AuthPagesRequest extends NextApiRequest {
 export async function requireAuthWithWorkspace(
   req: NextApiRequest,
   res: NextApiResponse,
-  next: (err?: any) => void,
+  next: (err?: unknown) => void,
 ) {
   const session = await auth(req, res);
   if (!session?.user) {

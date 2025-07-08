@@ -16,7 +16,7 @@ import {
   Share2,
   Users,
 } from "lucide-react";
-import Image, { ImageProps } from "next/image";
+import Image, { type ImageProps } from "next/image";
 import { useEffect, useState } from "react";
 import { api } from "@/trpc/react";
 
@@ -158,7 +158,7 @@ export default function GalleryView() {
   // Transform database photos to the format expected by the UI
   const photos =
     photosData?.map((photo) => {
-      const metadata = photo.metaData as any;
+      const metadata = photo.metaData as Record<string, unknown>;
       // Use the direct URL from database for both main and thumbnail
       const directUrl = photo.url;
 
@@ -167,12 +167,12 @@ export default function GalleryView() {
         url: directUrl,
         thumbnailUrl: directUrl, // Use same URL for thumbnail
         fallbackUrls: [directUrl],
-        name: photo.title || metadata?.originalName || `Photo ${photo.id}`,
+        name: photo.title || (metadata?.originalName as string) || `Photo ${photo.id}`,
         likes: Math.floor(Math.random() * 50), // You can replace this with real data later
         comments: Math.floor(Math.random() * 20), // You can replace this with real data later
         views: Math.floor(Math.random() * 1000), // You can replace this with real data later
         createdTime: photo.createdAt?.toISOString() || new Date().toISOString(),
-        size: metadata?.size?.toString() || "0",
+        size: (metadata?.size as number)?.toString() || "0",
         uploader: photo.uploader,
       };
     }) || [];
@@ -378,7 +378,7 @@ export default function GalleryView() {
                           {photo.name} from {event?.title || "Event"} -{" "}
                           {new Date(photo.createdTime).toLocaleDateString()} -{" "}
                           {Math.round(
-                            (parseInt(photo.size) / 1024 / 1024) * 100,
+                            (parseInt(photo.size || "0") / 1024 / 1024) * 100,
                           ) / 100}{" "}
                           MB
                         </DialogDescription>
