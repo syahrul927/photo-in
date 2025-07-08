@@ -21,7 +21,7 @@ interface GoogleDriveImage {
   size: string;
 }
 
-function getServiceAccountAuth() {
+function getServiceAccountAuth(oidcToken?: string) {
   try {
     const json = {
       universe_domain: "googleapis.com",
@@ -33,12 +33,22 @@ function getServiceAccountAuth() {
 
       subject_token_supplier: {
         getSubjectToken: async () => {
-          // Production: get from headers
+          // If token is provided directly, use it
+          if (oidcToken) {
+            return oidcToken;
+          }
+          
+          // Production: get from headers (App Router only)
           if (process.env.NODE_ENV === 'production') {
-            const headersList = await headers();
-            const oidcToken = headersList.get('x-vercel-oidc-token');
-            if (oidcToken) {
-              return oidcToken;
+            try {
+              const headersList = await headers();
+              const headerToken = headersList.get('x-vercel-oidc-token');
+              if (headerToken) {
+                return headerToken;
+              }
+            } catch (error) {
+              // headers() not available in this context (e.g., Pages API)
+              throw new Error('OIDC token not found. Please pass token directly to the function.');
             }
             throw new Error('OIDC token not found in production headers');
           }
@@ -84,9 +94,10 @@ async function getFolderId(
 
 export async function getImagesFromFolder(
   eventId: string,
+  oidcToken?: string,
 ): Promise<GoogleDriveImage[]> {
   try {
-    const auth = getServiceAccountAuth();
+    const auth = getServiceAccountAuth(oidcToken);
     const drive = google.drive({ version: "v3", auth: auth as any });
 
     // Get the folder ID for this event

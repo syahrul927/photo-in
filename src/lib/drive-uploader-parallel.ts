@@ -16,7 +16,7 @@ interface GoogleDriveFile {
   name: string;
 }
 
-function getServiceAccountAuth() {
+function getServiceAccountAuth(oidcToken?: string) {
   const json = {
     universe_domain: "googleapis.com",
     type: "external_account",
@@ -27,12 +27,22 @@ function getServiceAccountAuth() {
 
     subject_token_supplier: {
       getSubjectToken: async () => {
-        // Production: get from headers
+        // If token is provided directly, use it
+        if (oidcToken) {
+          return oidcToken;
+        }
+        
+        // Production: get from headers (App Router only)
         if (process.env.NODE_ENV === 'production') {
-          const headersList = await headers();
-          const oidcToken = headersList.get('x-vercel-oidc-token');
-          if (oidcToken) {
-            return oidcToken;
+          try {
+            const headersList = await headers();
+            const headerToken = headersList.get('x-vercel-oidc-token');
+            if (headerToken) {
+              return headerToken;
+            }
+          } catch (error) {
+            // headers() not available in this context (e.g., Pages API)
+            throw new Error('OIDC token not found. Please pass token directly to the function.');
           }
           throw new Error('OIDC token not found in production headers');
         }
@@ -86,9 +96,9 @@ async function getOrCreateFolder(
 }
 
 // New function to create folder during event creation
-export async function createEventFolder(eventId: string): Promise<string | null> {
+export async function createEventFolder(eventId: string, oidcToken?: string): Promise<string | null> {
   try {
-    const auth = getServiceAccountAuth();
+    const auth = getServiceAccountAuth(oidcToken);
     return await getOrCreateFolder(auth as any, eventId);
   } catch (error) {
     console.error("🚨 Failed to create event folder:", error);
@@ -100,9 +110,10 @@ export async function createEventFolder(eventId: string): Promise<string | null>
 export async function uploadFileToFolder(
   file: Express.Multer.File,
   folderId: string,
+  oidcToken?: string,
 ): Promise<GoogleDriveFile | null> {
   try {
-    const auth = getServiceAccountAuth();
+    const auth = getServiceAccountAuth(oidcToken);
     const drive = google.drive({ version: "v3", auth: auth as any });
 
     const bufferStream = Readable.from(file.buffer);
@@ -140,11 +151,12 @@ export async function uploadFileToFolder(
 export async function uploadFile(
   file: Express.Multer.File,
   parentFolder: string,
+  oidcToken?: string,
 ): Promise<GoogleDriveFile | null> {
   try {
-    const auth = getServiceAccountAuth();
+    const auth = getServiceAccountAuth(oidcToken);
     const folderId = await getOrCreateFolder(auth as any, parentFolder);
-    return await uploadFileToFolder(file, folderId);
+    return await uploadFileToFolder(file, folderId, oidcToken);
   } catch (error) {
     console.error("🚨 Failed to upload file to Drive:", error);
     return null;
@@ -156,10 +168,11 @@ export async function uploadFilesParallel(
   files: Express.Multer.File[],
   eventId: string,
   onProgress?: (completed: number, total: number) => void,
-  maxConcurrency = 3
+  maxConcurrency = 3,
+  oidcToken?: string
 ): Promise<(GoogleDriveFile | null)[]> {
   try {
-    const auth = getServiceAccountAuth();
+    const auth = getServiceAccountAuth(oidcToken);
     const folderId = await getOrCreateFolder(auth as any, eventId);
     
     let completed = 0;
@@ -170,7 +183,7 @@ export async function uploadFilesParallel(
       const batch = files.slice(i, i + maxConcurrency);
       
       const batchPromises = batch.map(async (file) => {
-        const result = await uploadFileToFolder(file, folderId);
+        const result = await uploadFileToFolder(file, folderId, oidcToken);
         completed++;
         onProgress?.(completed, files.length);
         return result;

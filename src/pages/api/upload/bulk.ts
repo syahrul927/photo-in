@@ -50,8 +50,11 @@ apiRoute.post(async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const eventId = req.body.eventId as string;
 
+  // Extract OIDC token from request headers
+  const oidcToken = req.headers['x-vercel-oidc-token'] as string;
+  
   // Upload file to Google Drive
-  const uploaded = await uploadFile(file, eventId);
+  const uploaded = await uploadFile(file, eventId, oidcToken);
 
   if (!uploaded) {
     return res.status(500).json({ error: "Upload failed." });

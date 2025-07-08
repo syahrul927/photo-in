@@ -58,6 +58,9 @@ apiRoute.post(async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
+    // Extract OIDC token from request headers
+    const oidcToken = req.headers['x-vercel-oidc-token'] as string;
+    
     // Upload files in parallel with progress tracking
     let uploadedCount = 0;
     const uploadResults = await uploadFilesParallel(
@@ -67,7 +70,8 @@ apiRoute.post(async (req: NextApiRequest, res: NextApiResponse) => {
         uploadedCount = completed;
         console.log(`Upload progress: ${completed}/${total}`);
       },
-      3 // Max 3 concurrent uploads to avoid rate limits
+      3, // Max 3 concurrent uploads to avoid rate limits
+      oidcToken // Pass the OIDC token
     );
 
     // Prepare photo metadata for batch insert
