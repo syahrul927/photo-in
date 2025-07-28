@@ -19,6 +19,7 @@ export const photo = sqliteTable("Photo", {
   uploadedBy: text("uploadedBy")
     .notNull()
     .references(() => user.id),
+  deleted: integer("deleted", { mode: "boolean" }).default(false).notNull(),
   createdAt: numeric("createdAt")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),

@@ -3,6 +3,10 @@ import { event, photo, user } from "@/server/db/schemas";
 import { EventStatusType } from "@/types/event-status";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { env } from "@/env";
+import { google } from "googleapis";
+import { getOAuthAuth } from "@/lib/google-oauth";
 
 export const getEventsByWorkspace = protectedProcedure.query(
   async ({ ctx }) => {
@@ -64,7 +68,7 @@ export const getPhotosByEventId = protectedProcedure
 
     if (!eventExists) return [];
 
-    // Get photos for the event with uploader information
+    // Get photos for the event with uploader information (exclude deleted photos)
     const photos = await db
       .select({
         id: photo.id,
@@ -82,7 +86,7 @@ export const getPhotosByEventId = protectedProcedure
       })
       .from(photo)
       .leftJoin(user, eq(photo.uploadedBy, user.id))
-      .where(eq(photo.eventId, eventId))
+      .where(and(eq(photo.eventId, eventId), eq(photo.deleted, false)))
       .orderBy(desc(photo.createdAt));
 
     return photos.map((p) => ({
@@ -95,4 +99,153 @@ export const getPhotosByEventId = protectedProcedure
       createdAt: p.createdAt ? new Date(p.createdAt) : null,
       uploader: p.uploader,
     }));
+  });
+
+const UPLOAD_FOLDER_ID = env.GOOGLE_DRIVE_FOLDER;
+
+
+async function getOrCreateEventFolder(
+  auth: any,
+  eventId: string,
+): Promise<string | null> {
+  const drive = google.drive({ version: "v3", auth });
+
+  // First, check if folder exists
+  const response = await drive.files.list({
+    q: `'${UPLOAD_FOLDER_ID}' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '${eventId}' and trashed = false`,
+    fields: "files(id, name)",
+    spaces: "drive",
+  });
+
+  const folder = response.data.files?.[0];
+  if (folder) {
+    return folder.id!;
+  }
+
+  // Create folder if it doesn't exist
+  const newFolder = await drive.files.create({
+    requestBody: {
+      name: eventId,
+      mimeType: "application/vnd.google-apps.folder",
+      parents: [UPLOAD_FOLDER_ID],
+    },
+    fields: "id",
+  });
+
+  return newFolder.data.id!;
+}
+
+export const getDriveFolderUrl = protectedProcedure
+  .input(z.string())
+  .query(async ({ ctx: { db, session }, input: eventId }) => {
+    const { currentWorkspace } = session;
+
+    // First verify the event belongs to the current workspace
+    const eventExists = await db.query.event.findFirst({
+      where: and(
+        eq(event.id, eventId),
+        eq(event.workspaceId, currentWorkspace.workspaceId),
+      ),
+    });
+
+    if (!eventExists) {
+      throw new Error("Event not found");
+    }
+
+    try {
+      // Use OAuth authentication instead of service account
+      const auth = getOAuthAuth();
+      const folderId = await getOrCreateEventFolder(auth, eventId);
+
+      if (!folderId) {
+        throw new Error("Failed to get or create event folder");
+      }
+
+      const driveUrl = `https://drive.google.com/drive/folders/${env.GOOGLE_DRIVE_FOLDER}/${folderId}`;
+
+      return {
+        folderId,
+        driveUrl,
+        parentFolderId: UPLOAD_FOLDER_ID,
+      };
+    } catch (error) {
+      console.error("Get folder URL error:", error);
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to get folder URL",
+      );
+    }
+  });
+
+export const getSecureImageUrl = protectedProcedure
+  .input(z.string())
+  .query(async ({ ctx: { db, session }, input: fileId }) => {
+    const { currentWorkspace } = session;
+
+    try {
+      // Verify the file belongs to a photo in the current workspace
+      const photoExists = await db
+        .select({
+          id: photo.id,
+          eventId: photo.eventId,
+          workspaceId: event.workspaceId,
+        })
+        .from(photo)
+        .leftJoin(event, eq(photo.eventId, event.id))
+        .where(and(
+          eq(photo.cloudId, fileId),
+          eq(photo.deleted, false),
+          eq(event.workspaceId, currentWorkspace.workspaceId)
+        ))
+        .limit(1);
+
+      if (!photoExists || photoExists.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Photo not found or access denied",
+        });
+      }
+
+      // Use OAuth authentication instead of service account
+      const auth = getOAuthAuth();
+      const drive = google.drive({ version: "v3", auth });
+
+      // Get the file metadata
+      const fileMetadata = await drive.files.get({
+        fileId: fileId,
+        fields: 'name,mimeType,webContentLink,webViewLink',
+      });
+
+      if (!fileMetadata.data.mimeType?.startsWith('image/')) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "File is not an image",
+        });
+      }
+
+      // Return a data URL by fetching the file content
+      const fileContent = await drive.files.get({
+        fileId: fileId,
+        alt: 'media',
+      }, {
+        responseType: 'arraybuffer',
+      });
+
+      // Convert to base64 data URL
+      const buffer = Buffer.from(fileContent.data as ArrayBuffer);
+      const base64 = buffer.toString('base64');
+      const dataUrl = `data:${fileMetadata.data.mimeType};base64,${base64}`;
+
+      return {
+        dataUrl,
+        fileName: fileMetadata.data.name,
+        mimeType: fileMetadata.data.mimeType,
+      };
+
+    } catch (error) {
+      console.error("Get secure image URL error:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: error instanceof Error ? error.message : "Failed to get secure image",
+      });
+    }
   });

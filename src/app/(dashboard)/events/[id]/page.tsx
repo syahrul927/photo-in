@@ -19,6 +19,8 @@ import {
 import Image, { type ImageProps } from "next/image";
 import { useEffect, useState } from "react";
 import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { useSecureImage } from "@/hooks/use-secure-image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,14 +39,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
-import { PAGE_URLS } from "@/lib/page-url";
 import { useParams } from "next/navigation";
 import {
   generateDirectImageUrl,
   generateThumbnailUrl,
   getImageUrlFromWebContentLink,
 } from "@/lib/drive-utils";
+import { UploadModal } from "@/components/upload-modal";
 
 const event = {
   id: 1,
@@ -64,6 +65,43 @@ const event = {
     "A beautiful summer wedding celebration capturing precious moments of Sarah and Mike's special day. The event featured an outdoor ceremony and an elegant indoor reception.",
 };
 
+const SecureImage = ({
+  fileId,
+  alt,
+  ...props
+}: { fileId: string; alt: string } & Omit<ImageProps, "src">) => {
+  const { dataUrl, isLoading, error } = useSecureImage(fileId);
+
+  if (isLoading) {
+    return (
+      <div className="relative h-full w-full">
+        <div className="bg-muted absolute inset-0 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (error || !dataUrl) {
+    return (
+      <div className="relative h-full w-full">
+        <div className="bg-muted absolute inset-0 flex items-center justify-center">
+          <ImagePlus className="text-muted-foreground h-8 w-8" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-full w-full">
+      <Image
+        src={dataUrl}
+        alt={alt}
+        className="transition-opacity duration-300"
+        {...props}
+      />
+    </div>
+  );
+};
+
 const ImageWithFallback = ({
   src,
   alt,
@@ -79,6 +117,11 @@ const ImageWithFallback = ({
     Boolean,
   ) as string[];
   const currentSrc = allSources[currentSrcIndex] || "/placeholder.svg";
+
+  // Check if this is a direct Google Drive URL (not our secure endpoint)
+  const isDirectGoogleDriveUrl =
+    currentSrc.includes("drive.google.com") &&
+    !currentSrc.includes("/api/secure-image");
 
   useEffect(() => {
     // Reset states when src changes
@@ -102,6 +145,15 @@ const ImageWithFallback = ({
     }
   };
 
+  const handleLoad = () => {
+    setIsLoading(false);
+    if (currentSrcIndex > 0) {
+      console.log(
+        `Image loaded successfully using fallback ${currentSrcIndex}: ${currentSrc}`,
+      );
+    }
+  };
+
   return (
     <div className="relative h-full w-full">
       {isLoading && !error && (
@@ -111,18 +163,23 @@ const ImageWithFallback = ({
         <div className="bg-muted absolute inset-0 flex items-center justify-center">
           <ImagePlus className="text-muted-foreground h-8 w-8" />
         </div>
+      ) : isDirectGoogleDriveUrl ? (
+        // Use regular img tag for direct Google Drive URLs
+        <img
+          src={currentSrc}
+          alt={alt}
+          onLoad={handleLoad}
+          onError={handleError}
+          className={`h-full w-full object-cover transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
+            }`}
+          crossOrigin="anonymous"
+        />
       ) : (
+        // Use Next.js Image for proxied URLs and other URLs
         <Image
           src={currentSrc}
           alt={alt}
-          onLoadingComplete={() => {
-            setIsLoading(false);
-            if (currentSrcIndex > 0) {
-              console.log(
-                `Image loaded successfully using fallback ${currentSrcIndex}: ${currentSrc}`,
-              );
-            }
-          }}
+          onLoadingComplete={handleLoad}
           onError={handleError}
           className={`transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
             }`}
@@ -138,6 +195,7 @@ const ImageWithFallback = ({
 export default function GalleryView() {
   const params = useParams<{ id: string }>();
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("grid");
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // Use tRPC to fetch event and photos from database
   const { data: eventData, isLoading: eventLoading } =
@@ -149,6 +207,7 @@ export default function GalleryView() {
     data: photosData,
     isLoading: photosLoading,
     error: queryError,
+    refetch: refetchPhotos,
   } = api.event.getPhotosByEventId.useQuery(params?.id ?? "", {
     enabled: !!params?.id,
   });
@@ -159,15 +218,21 @@ export default function GalleryView() {
   const photos =
     photosData?.map((photo) => {
       const metadata = photo.metaData as Record<string, unknown>;
-      // Use the direct URL from database for both main and thumbnail
-      const directUrl = photo.url;
+      // Check if this is a secure URL
+      const isSecureUrl = photo.url.startsWith("secure://");
+      const fileId = isSecureUrl ? photo.url.replace("secure://", "") : null;
 
       return {
         id: photo.cloudId,
-        url: directUrl,
-        thumbnailUrl: directUrl, // Use same URL for thumbnail
-        fallbackUrls: [directUrl],
-        name: photo.title || (metadata?.originalName as string) || `Photo ${photo.id}`,
+        url: photo.url,
+        thumbnailUrl: photo.url,
+        isSecure: isSecureUrl,
+        fileId: fileId,
+        fallbackUrls: [], // Not needed for secure images
+        name:
+          photo.title ||
+          (metadata?.originalName as string) ||
+          `Photo ${photo.id}`,
         likes: Math.floor(Math.random() * 50), // You can replace this with real data later
         comments: Math.floor(Math.random() * 20), // You can replace this with real data later
         views: Math.floor(Math.random() * 1000), // You can replace this with real data later
@@ -178,6 +243,16 @@ export default function GalleryView() {
     }) || [];
 
   const error = queryError?.message || null;
+
+  // Get the tRPC utils for manual queries
+  const utils = api.useUtils();
+
+  // Sync photos mutation
+  const handleUploadComplete = () => {
+    // Refetch photos after upload
+    console.log("Upload completed, refetching photos...");
+    refetchPhotos();
+  };
 
   // Create event object for UI compatibility
   const event = eventData
@@ -191,6 +266,16 @@ export default function GalleryView() {
       contributors: [], // You can add this data later
     }
     : null;
+
+  const sampleLoading = () => {
+    const sampleToastLoading = toast.loading(`Upload Loading`, {
+      description: "Please wait while we upload your photos",
+      duration: Infinity,
+    });
+    setTimeout(() => {
+      toast.dismiss(sampleToastLoading);
+    }, 3000);
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -208,7 +293,7 @@ export default function GalleryView() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Button>
+                <Button onClick={sampleLoading}>
                   <Download className="mr-2 h-4 w-4" />
                   Download All
                 </Button>
@@ -279,12 +364,12 @@ export default function GalleryView() {
                 </Select>
               </div>
               {params?.id ? (
-                <Button asChild>
-                  <Link href={PAGE_URLS.EVENTS_UPLOAD_PHOTO(params.id)}>
+                <div className="flex gap-2">
+                  <Button onClick={() => setIsUploadModalOpen(true)}>
                     <ImagePlus className="mr-2 h-4 w-4" />
-                    Upload Photo
-                  </Link>
-                </Button>
+                    Upload Photos
+                  </Button>
+                </div>
               ) : null}
             </div>
           </div>
@@ -335,19 +420,30 @@ export default function GalleryView() {
                     <DialogTrigger asChild>
                       <div className="group relative cursor-pointer overflow-hidden rounded-lg">
                         <div className="relative aspect-[4/3] w-full">
-                          <ImageWithFallback
-                            src={
-                              photo.thumbnailUrl ||
-                              photo.url ||
-                              "/placeholder.svg"
-                            }
-                            alt={photo.name || `Photo ${photo.id}`}
-                            fallbackUrls={photo.fallbackUrls}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            priority={index < 4} // Prioritize loading for first 4 images
-                          />
+                          {photo.isSecure && photo.fileId ? (
+                            <SecureImage
+                              fileId={photo.fileId}
+                              alt={photo.name || `Photo ${photo.id}`}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              priority={index < 4}
+                            />
+                          ) : (
+                            <ImageWithFallback
+                              src={
+                                photo.thumbnailUrl ||
+                                photo.url ||
+                                "/placeholder.svg"
+                              }
+                              alt={photo.name || `Photo ${photo.id}`}
+                              fallbackUrls={photo.fallbackUrls}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              priority={index < 4} // Prioritize loading for first 4 images
+                            />
+                          )}
                         </div>
                         <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                           <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
@@ -384,15 +480,26 @@ export default function GalleryView() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-                        <ImageWithFallback
-                          src={photo.url || "/placeholder.svg"}
-                          alt={photo.name || `Photo ${photo.id}`}
-                          fallbackUrls={photo.fallbackUrls}
-                          fill
-                          className="object-contain"
-                          sizes="(max-width: 1200px) 100vw, 1200px"
-                          priority
-                        />
+                        {photo.isSecure && photo.fileId ? (
+                          <SecureImage
+                            fileId={photo.fileId}
+                            alt={photo.name || `Photo ${photo.id}`}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 1200px) 100vw, 1200px"
+                            priority
+                          />
+                        ) : (
+                          <ImageWithFallback
+                            src={photo.url || "/placeholder.svg"}
+                            alt={photo.name || `Photo ${photo.id}`}
+                            fallbackUrls={photo.fallbackUrls}
+                            fill
+                            className="object-contain"
+                            sizes="(max-width: 1200px) 100vw, 1200px"
+                            priority
+                          />
+                        )}
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -422,6 +529,16 @@ export default function GalleryView() {
           )}
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {params?.id && (
+        <UploadModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          eventId={params.id}
+          onUploadComplete={handleUploadComplete}
+        />
+      )}
     </div>
   );
 }

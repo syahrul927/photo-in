@@ -58,10 +58,7 @@ apiRoute.post(async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   try {
-    // Extract OIDC token from request headers
-    const oidcToken = req.headers['x-vercel-oidc-token'] as string;
-    
-    // Upload files in parallel with progress tracking
+    // Upload files in parallel with progress tracking using OAuth
     let uploadedCount = 0;
     const uploadResults = await uploadFilesParallel(
       files,
@@ -70,8 +67,7 @@ apiRoute.post(async (req: NextApiRequest, res: NextApiResponse) => {
         uploadedCount = completed;
         console.log(`Upload progress: ${completed}/${total}`);
       },
-      3, // Max 3 concurrent uploads to avoid rate limits
-      oidcToken // Pass the OIDC token
+      3 // Max 3 concurrent uploads to avoid rate limits
     );
 
     // Prepare photo metadata for batch insert
@@ -94,7 +90,7 @@ apiRoute.post(async (req: NextApiRequest, res: NextApiResponse) => {
             uploadedAt: new Date().toISOString(),
           }),
           description: null,
-          url: `https://drive.google.com/uc?export=view&id=${uploaded.id}`,
+          url: `secure://${uploaded.id}`,
           uploadedBy: session.user.id,
         };
 

@@ -16,12 +16,11 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    GCP_PROJECT_ID: z.string(),
-    GCP_PROJECT_NUMBER: z.string(),
-    GCP_SERVICE_ACCOUNT_EMAIL: z.string(),
-    GCP_WORKLOAD_IDENTITY_POOL_ID: z.string(),
-    GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID: z.string(),
     GOOGLE_DRIVE_FOLDER: z.string(),
+    // OAuth credentials for Google Drive API
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
+    GOOGLE_REFRESH_TOKEN: z.string(),
   },
 
   /**
@@ -42,13 +41,11 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,
     TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
-    GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
-    GCP_PROJECT_NUMBER: process.env.GCP_PROJECT_NUMBER,
-    GCP_SERVICE_ACCOUNT_EMAIL: process.env.GCP_SERVICE_ACCOUNT_EMAIL,
-    GCP_WORKLOAD_IDENTITY_POOL_ID: process.env.GCP_WORKLOAD_IDENTITY_POOL_ID,
-    GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID:
-      process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID,
     GOOGLE_DRIVE_FOLDER: process.env.GOOGLE_DRIVE_FOLDER,
+    // OAuth credentials for Google Drive API
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -13,7 +13,17 @@ const config = {
         protocol: "https",
         hostname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "drive.google.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
   },
   webpack: (config, { isServer }) => {
     // Exclude Node.js-specific modules from client-side bundles
