@@ -69,8 +69,6 @@ export function UploadModal({
       if (!response.ok) {
         throw new Error("Upload failed");
       }
-
-      return response.json();
     },
   });
 
@@ -123,10 +121,7 @@ export function UploadModal({
         "Starting upload for files:",
         selectedFiles.map((f) => f.file.name),
       );
-      const result = await uploadMutation.mutateAsync(
-        selectedFiles.map((sf) => sf.file),
-      );
-      console.log("Upload result:", result);
+      await uploadMutation.mutateAsync(selectedFiles.map((sf) => sf.file));
 
       // Dismiss loading toast
       toast.dismiss(uploadToast);

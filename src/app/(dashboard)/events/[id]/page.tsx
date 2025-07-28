@@ -251,7 +251,7 @@ export default function GalleryView() {
   const handleUploadComplete = () => {
     // Refetch photos after upload
     console.log("Upload completed, refetching photos...");
-    refetchPhotos();
+    void refetchPhotos();
   };
 
   // Create event object for UI compatibility
