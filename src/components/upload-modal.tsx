@@ -57,26 +57,31 @@ export function UploadModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Chunking configuration
-  const MAX_FILES_PER_CHUNK = 6;
-  const MAX_SIZE_PER_CHUNK = 3 * 1024 * 1024; // 3MB per chunk
+  const MAX_SIZE_PER_CHUNK = 3 * 1024 * 1024; // 3MB per chunk (primary constraint)
+  const MAX_FILES_PER_CHUNK = 50; // Fallback limit to prevent too many files in one request
   const MAX_RETRIES = 3;
 
-  // Utility function to create smart chunks based on file size and count
+  // Utility function to create smart chunks based primarily on file size
   const createSmartChunks = (files: File[]) => {
     const chunks: File[][] = [];
     let currentChunk: File[] = [];
     let currentSize = 0;
 
     for (const file of files) {
-      // If adding this file would exceed limits and we have files in current chunk
-      if (
-        (currentSize + file.size > MAX_SIZE_PER_CHUNK ||
-          currentChunk.length >= MAX_FILES_PER_CHUNK) &&
-        currentChunk.length > 0
-      ) {
+      // Check if adding this file would exceed the size limit
+      const wouldExceedSize = currentSize + file.size > MAX_SIZE_PER_CHUNK;
+      const wouldExceedCount = currentChunk.length >= MAX_FILES_PER_CHUNK;
+      
+      // If we have files in current chunk and adding this file would exceed limits
+      if ((wouldExceedSize || wouldExceedCount) && currentChunk.length > 0) {
         chunks.push(currentChunk);
         currentChunk = [file];
         currentSize = file.size;
+        
+        // Warn if single file is too large
+        if (file.size > MAX_SIZE_PER_CHUNK) {
+          console.warn(`File ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds chunk size limit`);
+        }
       } else {
         currentChunk.push(file);
         currentSize += file.size;
@@ -87,6 +92,13 @@ export function UploadModal({
     if (currentChunk.length > 0) {
       chunks.push(currentChunk);
     }
+
+    // Log chunking info for debugging
+    console.log(`Created ${chunks.length} chunks:`, chunks.map((chunk, i) => ({
+      chunk: i + 1,
+      files: chunk.length,
+      sizeMB: (chunk.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1)
+    })));
 
     return chunks;
   };
