@@ -35,7 +35,7 @@ interface ChunkProgress {
   chunkIndex: number;
   totalChunks: number;
   filesInChunk: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error';
+  status: "pending" | "uploading" | "completed" | "error";
   toastId?: string | number;
   retryCount: number;
 }
@@ -69,8 +69,11 @@ export function UploadModal({
 
     for (const file of files) {
       // If adding this file would exceed limits and we have files in current chunk
-      if ((currentSize + file.size > MAX_SIZE_PER_CHUNK || currentChunk.length >= MAX_FILES_PER_CHUNK) 
-          && currentChunk.length > 0) {
+      if (
+        (currentSize + file.size > MAX_SIZE_PER_CHUNK ||
+          currentChunk.length >= MAX_FILES_PER_CHUNK) &&
+        currentChunk.length > 0
+      ) {
         chunks.push(currentChunk);
         currentChunk = [file];
         currentSize = file.size;
@@ -89,11 +92,18 @@ export function UploadModal({
   };
 
   // Upload a single chunk of files
-  const uploadChunk = async (chunk: File[], chunkIndex: number, totalChunks: number): Promise<boolean> => {
-    const chunkToast = toast.loading(`Uploading batch ${chunkIndex + 1} of ${totalChunks}`, {
-      description: `${chunk.length} photos in this batch`,
-      duration: Infinity,
-    });
+  const uploadChunk = async (
+    chunk: File[],
+    chunkIndex: number,
+    totalChunks: number,
+  ): Promise<boolean> => {
+    const chunkToast = toast.loading(
+      `Uploading batch ${chunkIndex + 1} of ${totalChunks}`,
+      {
+        description: `${chunk.length} photos in this batch`,
+        duration: Infinity,
+      },
+    );
 
     try {
       // Get workspace header
@@ -108,12 +118,12 @@ export function UploadModal({
 
       const formData = new FormData();
       chunk.forEach((file) => {
-        formData.append('images', file);
+        formData.append("images", file);
       });
-      formData.append('eventId', eventId);
+      formData.append("eventId", eventId);
 
-      const response = await fetch('/api/upload/parallel', {
-        method: 'POST',
+      const response = await fetch("/api/upload/parallel", {
+        method: "POST",
         headers,
         body: formData,
       });
@@ -123,7 +133,7 @@ export function UploadModal({
       }
 
       const result = await response.json();
-      
+
       // Dismiss chunk toast and show success
       toast.dismiss(chunkToast);
       toast.success(`Batch ${chunkIndex + 1} completed!`, {
@@ -205,38 +215,46 @@ export function UploadModal({
     // Close modal immediately
     handleClose();
 
-    const files = selectedFiles.map(sf => sf.file);
+    const files = selectedFiles.map((sf) => sf.file);
     const chunks = createSmartChunks(files);
-    
+
     console.log(`Uploading ${files.length} files in ${chunks.length} chunks`);
 
     // Show initial upload toast
-    const mainToast = toast.loading(`Starting upload of ${files.length} photos...`, {
-      description: `Split into ${chunks.length} batches for optimal performance`,
-      duration: Infinity,
-    });
+    const mainToast = toast.loading(
+      `Starting upload of ${files.length} photos...`,
+      {
+        description: `Split into ${chunks.length} batches for optimal performance`,
+        duration: Infinity,
+      },
+    );
 
     let completedFiles = 0;
-    let failedChunks: number[] = [];
+    const failedChunks: number[] = [];
 
     try {
       // Upload chunks sequentially to avoid overwhelming the server
       for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        console.log(`Uploading chunk ${i + 1}/${chunks.length} with ${chunk.length} files`);
-        
+        const chunk = chunks[i] ?? [];
+        console.log(
+          `Uploading chunk ${i + 1}/${chunks.length} with ${chunk.length} files`,
+        );
+
         const success = await uploadChunk(chunk, i, chunks.length);
-        
+
         if (success) {
           completedFiles += chunk.length;
-          
+
           // Update main progress toast
           toast.dismiss(mainToast);
           if (i < chunks.length - 1) {
-            toast.loading(`Progress: ${completedFiles}/${files.length} photos uploaded`, {
-              description: `Batch ${i + 2} of ${chunks.length} starting...`,
-              duration: Infinity,
-            });
+            toast.loading(
+              `Progress: ${completedFiles}/${files.length} photos uploaded`,
+              {
+                description: `Batch ${i + 2} of ${chunks.length} starting...`,
+                duration: Infinity,
+              },
+            );
           }
         } else {
           failedChunks.push(i);
@@ -252,7 +270,10 @@ export function UploadModal({
           description: "Your photos are now available in the gallery",
         });
       } else {
-        const failedFiles = failedChunks.reduce((total, chunkIndex) => total + chunks[chunkIndex].length, 0);
+        const failedFiles = failedChunks.reduce(
+          (total, chunkIndex) => total + (chunks[chunkIndex]?.length ?? 0),
+          0,
+        );
         toast.warning(`Upload completed with some issues`, {
           description: `${completedFiles} photos uploaded, ${failedFiles} failed. You can retry the failed ones.`,
         });
@@ -260,13 +281,12 @@ export function UploadModal({
 
       // Call upload complete callback
       onUploadComplete?.();
-
     } catch (error) {
       console.error("Upload error:", error);
       toast.dismiss(mainToast);
-      
-      toast.error('Upload failed', {
-        description: 'Please try again. Check your internet connection.',
+
+      toast.error("Upload failed", {
+        description: "Please try again. Check your internet connection.",
       });
     }
   };
