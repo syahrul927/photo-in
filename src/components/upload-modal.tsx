@@ -31,6 +31,15 @@ interface SelectedFile {
   id: string;
 }
 
+interface ChunkProgress {
+  chunkIndex: number;
+  totalChunks: number;
+  filesInChunk: number;
+  status: 'pending' | 'uploading' | 'completed' | 'error';
+  toastId?: string | number;
+  retryCount: number;
+}
+
 export function UploadModal({
   isOpen,
   onClose,
@@ -39,7 +48,98 @@ export function UploadModal({
 }: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{
+    totalFiles: number;
+    completedFiles: number;
+    currentChunk: number;
+    totalChunks: number;
+  }>({ totalFiles: 0, completedFiles: 0, currentChunk: 0, totalChunks: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Chunking configuration
+  const MAX_FILES_PER_CHUNK = 6;
+  const MAX_SIZE_PER_CHUNK = 3 * 1024 * 1024; // 3MB per chunk
+  const MAX_RETRIES = 3;
+
+  // Utility function to create smart chunks based on file size and count
+  const createSmartChunks = (files: File[]) => {
+    const chunks: File[][] = [];
+    let currentChunk: File[] = [];
+    let currentSize = 0;
+
+    for (const file of files) {
+      // If adding this file would exceed limits and we have files in current chunk
+      if ((currentSize + file.size > MAX_SIZE_PER_CHUNK || currentChunk.length >= MAX_FILES_PER_CHUNK) 
+          && currentChunk.length > 0) {
+        chunks.push(currentChunk);
+        currentChunk = [file];
+        currentSize = file.size;
+      } else {
+        currentChunk.push(file);
+        currentSize += file.size;
+      }
+    }
+
+    // Add the last chunk if it has files
+    if (currentChunk.length > 0) {
+      chunks.push(currentChunk);
+    }
+
+    return chunks;
+  };
+
+  // Upload a single chunk of files
+  const uploadChunk = async (chunk: File[], chunkIndex: number, totalChunks: number): Promise<boolean> => {
+    const chunkToast = toast.loading(`Uploading batch ${chunkIndex + 1} of ${totalChunks}`, {
+      description: `${chunk.length} photos in this batch`,
+      duration: Infinity,
+    });
+
+    try {
+      // Get workspace header
+      const headers = new Headers();
+      let currentWorkspace = localStorage.getItem(CURRENT_WORKSPACE);
+      if (!currentWorkspace) {
+        const session = await getSession();
+        currentWorkspace = session?.user.workspaces?.[0]?.keyWorkspace ?? "";
+        localStorage.setItem(CURRENT_WORKSPACE, currentWorkspace);
+      }
+      headers.set(CURRENT_WORKSPACE, currentWorkspace);
+
+      const formData = new FormData();
+      chunk.forEach((file) => {
+        formData.append('images', file);
+      });
+      formData.append('eventId', eventId);
+
+      const response = await fetch('/api/upload/parallel', {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Batch ${chunkIndex + 1} upload failed`);
+      }
+
+      const result = await response.json();
+      
+      // Dismiss chunk toast and show success
+      toast.dismiss(chunkToast);
+      toast.success(`Batch ${chunkIndex + 1} completed!`, {
+        description: `${chunk.length} photos uploaded successfully`,
+      });
+
+      return true;
+    } catch (error) {
+      toast.dismiss(chunkToast);
+      console.error(`Batch ${chunkIndex + 1} error:`, error);
+      toast.error(`Batch ${chunkIndex + 1} failed`, {
+        description: `Failed to upload ${chunk.length} photos. Will retry if possible.`,
+      });
+      return false;
+    }
+  };
 
   // Upload mutation
   const uploadMutation = useMutation({
@@ -105,63 +205,68 @@ export function UploadModal({
     // Close modal immediately
     handleClose();
 
+    const files = selectedFiles.map(sf => sf.file);
+    const chunks = createSmartChunks(files);
+    
+    console.log(`Uploading ${files.length} files in ${chunks.length} chunks`);
+
     // Show initial upload toast
-    console.log("Showing loading toast");
-    const uploadToast = toast.loading(
-      `Uploading ${selectedFiles.length} photos...`,
-      {
-        description: "Please wait while we upload your photos",
-        duration: Infinity,
-      },
-    );
-    console.log("Loading toast ID:", uploadToast);
+    const mainToast = toast.loading(`Starting upload of ${files.length} photos...`, {
+      description: `Split into ${chunks.length} batches for optimal performance`,
+      duration: Infinity,
+    });
+
+    let completedFiles = 0;
+    let failedChunks: number[] = [];
 
     try {
-      console.log(
-        "Starting upload for files:",
-        selectedFiles.map((f) => f.file.name),
-      );
-      await uploadMutation.mutateAsync(selectedFiles.map((sf) => sf.file));
+      // Upload chunks sequentially to avoid overwhelming the server
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        console.log(`Uploading chunk ${i + 1}/${chunks.length} with ${chunk.length} files`);
+        
+        const success = await uploadChunk(chunk, i, chunks.length);
+        
+        if (success) {
+          completedFiles += chunk.length;
+          
+          // Update main progress toast
+          toast.dismiss(mainToast);
+          if (i < chunks.length - 1) {
+            toast.loading(`Progress: ${completedFiles}/${files.length} photos uploaded`, {
+              description: `Batch ${i + 2} of ${chunks.length} starting...`,
+              duration: Infinity,
+            });
+          }
+        } else {
+          failedChunks.push(i);
+        }
+      }
 
-      // Dismiss loading toast
-      toast.dismiss(uploadToast);
-      console.log("Dismissed loading toast");
+      // Dismiss main toast
+      toast.dismiss(mainToast);
 
-      // Show individual success toasts for each file
-      selectedFiles.forEach((selectedFile, index) => {
-        setTimeout(() => {
-          console.log(`Showing success toast for ${selectedFile.file.name}`);
-          toast.success(`${selectedFile.file.name} uploaded!`, {
-            description: "Photo uploaded successfully",
-          });
-        }, index * 200); // Stagger the success toasts
-      });
-
-      // Show overall success toast
-      setTimeout(
-        () => {
-          console.log("Showing overall success toast");
-          toast.success(
-            `All ${selectedFiles.length} photos uploaded successfully!`,
-            {
-              description: "Your photos are now available in the gallery",
-            },
-          );
-        },
-        selectedFiles.length * 200 + 500,
-      );
+      // Show final results
+      if (failedChunks.length === 0) {
+        toast.success(`All ${files.length} photos uploaded successfully!`, {
+          description: "Your photos are now available in the gallery",
+        });
+      } else {
+        const failedFiles = failedChunks.reduce((total, chunkIndex) => total + chunks[chunkIndex].length, 0);
+        toast.warning(`Upload completed with some issues`, {
+          description: `${completedFiles} photos uploaded, ${failedFiles} failed. You can retry the failed ones.`,
+        });
+      }
 
       // Call upload complete callback
-      console.log("Calling onUploadComplete");
       onUploadComplete?.();
+
     } catch (error) {
       console.error("Upload error:", error);
-      // Dismiss loading toast
-      toast.dismiss(uploadToast);
-
-      // Show error toast
-      toast.error("Upload failed", {
-        description: "Please try again. Check your internet connection.",
+      toast.dismiss(mainToast);
+      
+      toast.error('Upload failed', {
+        description: 'Please try again. Check your internet connection.',
       });
     }
   };
