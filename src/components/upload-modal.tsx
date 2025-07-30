@@ -232,8 +232,7 @@ export function UploadModal({
 
     console.log(`Uploading ${files.length} files in ${chunks.length} chunks`);
 
-    // Show initial upload toast
-    const mainToast = toast.loading(
+    let mainToast = toast.loading(
       `Starting upload of ${files.length} photos...`,
       {
         description: `Split into ${chunks.length} batches for optimal performance`,
@@ -257,14 +256,24 @@ export function UploadModal({
         if (success) {
           completedFiles += chunk.length;
 
-          // Update main progress toast
+          // Always update the toast - even for the last batch
           toast.dismiss(mainToast);
+          
           if (i < chunks.length - 1) {
-            toast.loading(
+            mainToast = toast.loading(
               `Progress: ${completedFiles}/${files.length} photos uploaded`,
               {
                 description: `Batch ${i + 2} of ${chunks.length} starting...`,
                 duration: Infinity,
+              },
+            );
+          } else {
+            // Last batch: show final completion
+            mainToast = toast.success(
+              `Finalizing ${completedFiles}/${files.length} photos...`,
+              {
+                description: `Processing last batch...`,
+                duration: 2000,
               },
             );
           }
@@ -273,8 +282,10 @@ export function UploadModal({
         }
       }
 
-      // Dismiss main toast
-      toast.dismiss(mainToast);
+      // Ensure toast is dismissed before showing final results
+      setTimeout(() => {
+        toast.dismiss(mainToast);
+      }, 2000);
 
       // Show final results
       if (failedChunks.length === 0) {

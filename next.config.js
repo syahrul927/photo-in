@@ -8,6 +8,7 @@ import "./src/env.js";
 const config = {
   transpilePackages: ["next-auth"],
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -23,7 +24,7 @@ const config = {
       },
     ],
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
+    contentDispositionType: "attachment",
   },
   webpack: (config, { isServer }) => {
     // Exclude Node.js-specific modules from client-side bundles

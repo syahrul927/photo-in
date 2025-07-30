@@ -24,14 +24,8 @@ import { useSecureImage } from "@/hooks/use-secure-image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { PhotoDialog, PhotoFile } from "@/features/gallery";
 import {
   Select,
   SelectContent,
@@ -196,6 +190,8 @@ export default function GalleryView() {
   const params = useParams<{ id: string }>();
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("grid");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoFile | null>(null);
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
 
   // Use tRPC to fetch event and photos from database
   const { data: eventData, isLoading: eventLoading } =
@@ -215,7 +211,7 @@ export default function GalleryView() {
   const isLoading = eventLoading || photosLoading;
 
   // Transform database photos to the format expected by the UI
-  const photos =
+  const photos: PhotoFile[] =
     photosData?.map((photo) => {
       const metadata = photo.metaData as Record<string, unknown>;
       // Check if this is a secure URL
@@ -223,7 +219,8 @@ export default function GalleryView() {
       const fileId = isSecureUrl ? photo.url.replace("secure://", "") : null;
 
       return {
-        id: photo.cloudId,
+        id: photo.id,
+        cloudId: photo.cloudId,
         url: photo.url,
         thumbnailUrl: photo.url,
         isSecure: isSecureUrl,
@@ -233,12 +230,10 @@ export default function GalleryView() {
           photo.title ||
           (metadata?.originalName as string) ||
           `Photo ${photo.id}`,
-        likes: Math.floor(Math.random() * 50), // You can replace this with real data later
-        comments: Math.floor(Math.random() * 20), // You can replace this with real data later
-        views: Math.floor(Math.random() * 1000), // You can replace this with real data later
         createdTime: photo.createdAt?.toISOString() || new Date().toISOString(),
         size: (metadata?.size as number)?.toString() || "0",
         uploader: photo.uploader,
+        metadata: metadata,
       };
     }) || [];
 
@@ -252,6 +247,17 @@ export default function GalleryView() {
     // Refetch photos after upload
     console.log("Upload completed, refetching photos...");
     void refetchPhotos();
+  };
+
+  const handlePhotoClick = (photo: PhotoFile) => {
+    console.log("photo clicked");
+    setSelectedPhoto(photo);
+    setIsPhotoDialogOpen(true);
+  };
+
+  const handleClosePhotoDialog = () => {
+    setIsPhotoDialogOpen(false);
+    setSelectedPhoto(null);
   };
 
   // Create event object for UI compatibility
@@ -416,113 +422,45 @@ export default function GalleryView() {
                       : ""
                   }
                 >
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <div className="group relative cursor-pointer overflow-hidden rounded-lg">
-                        <div className="relative aspect-[4/3] w-full">
-                          {photo.isSecure && photo.fileId ? (
-                            <SecureImage
-                              fileId={photo.fileId}
-                              alt={photo.name || `Photo ${photo.id}`}
-                              fill
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                              priority={index < 4}
-                            />
-                          ) : (
-                            <ImageWithFallback
-                              src={
-                                photo.thumbnailUrl ||
-                                photo.url ||
-                                "/placeholder.svg"
-                              }
-                              alt={photo.name || `Photo ${photo.id}`}
-                              fallbackUrls={photo.fallbackUrls}
-                              fill
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                              priority={index < 4} // Prioritize loading for first 4 images
-                            />
-                          )}
-                        </div>
-                        <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                          <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center">
-                                  <Heart className="mr-1 h-4 w-4" />
-                                  <span>{photo.likes}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <MessageCircle className="mr-1 h-4 w-4" />
-                                  <span>{photo.comments}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <Eye className="mr-1 h-4 w-4" />
-                                  <span>{photo.views}</span>
-                                </div>
-                              </div>
-                            </div>
+                  <div
+                    className="group relative cursor-pointer overflow-hidden rounded-lg"
+                    onClick={() => handlePhotoClick(photo)}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="relative aspect-[4/3] w-full">
+                      {photo.isSecure && photo.fileId ? (
+                        <SecureImage
+                          fileId={photo.fileId}
+                          alt={photo.name || `Photo ${photo.id}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          priority={index < 4}
+                        />
+                      ) : (
+                        <ImageWithFallback
+                          src={"/placeholder.svg"}
+                          alt={photo.name || `Photo ${photo.id}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          priority={index < 4} // Prioritize loading for first 4 images
+                        />
+                      )}
+                    </div>
+                    <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1">
+                            <span className="text-xs opacity-75">
+                              {photo.name}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
-                      <DialogHeader>
-                        <DialogTitle>{photo.name}</DialogTitle>
-                        <DialogDescription>
-                          {photo.name} from {event?.title || "Event"} -{" "}
-                          {new Date(photo.createdTime).toLocaleDateString()} -{" "}
-                          {Math.round(
-                            (parseInt(photo.size || "0") / 1024 / 1024) * 100,
-                          ) / 100}{" "}
-                          MB
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-                        {photo.isSecure && photo.fileId ? (
-                          <SecureImage
-                            fileId={photo.fileId}
-                            alt={photo.name || `Photo ${photo.id}`}
-                            fill
-                            className="object-contain"
-                            sizes="(max-width: 1200px) 100vw, 1200px"
-                            priority
-                          />
-                        ) : (
-                          <ImageWithFallback
-                            src={photo.url || "/placeholder.svg"}
-                            alt={photo.name || `Photo ${photo.id}`}
-                            fallbackUrls={photo.fallbackUrls}
-                            fill
-                            className="object-contain"
-                            sizes="(max-width: 1200px) 100vw, 1200px"
-                            priority
-                          />
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center">
-                            <Heart className="mr-1 h-4 w-4" />
-                            <span>{photo.likes}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <MessageCircle className="mr-1 h-4 w-4" />
-                            <span>{photo.comments}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Eye className="mr-1 h-4 w-4" />
-                            <span>{photo.views}</span>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
@@ -539,6 +477,13 @@ export default function GalleryView() {
           onUploadComplete={handleUploadComplete}
         />
       )}
+
+      <PhotoDialog
+        photo={selectedPhoto}
+        isOpen={isPhotoDialogOpen}
+        onClose={handleClosePhotoDialog}
+        eventName={event?.title}
+      />
     </div>
   );
 }
