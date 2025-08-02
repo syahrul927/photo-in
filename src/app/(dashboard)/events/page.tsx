@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Filter, ImageIcon, Loader2, Search } from "lucide-react";
+import { Filter, ImageIcon, Search } from "lucide-react";
 import { useState } from "react";
 
 import ContentLayout from "@/components/layout/content-layout";
@@ -21,7 +21,7 @@ import {
   EventCardSkeleton,
 } from "@/features/events";
 import EventStatusDialog from "@/features/events/event-status-dialog/event-status-dialog";
-import { EventStatusType } from "@/types/event-status";
+import { type EventStatusType } from "@/types/event-status";
 import { useToast } from "@/hooks/use-toast";
 
 export default function EventPage() {

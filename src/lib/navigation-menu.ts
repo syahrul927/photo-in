@@ -1,4 +1,4 @@
-import { NavigationType } from "@/components/sidebar/types";
+import { type NavigationType } from "@/components/sidebar/types";
 import {
   CalendarIcon,
   HomeIcon,

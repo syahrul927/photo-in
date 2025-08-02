@@ -50,7 +50,7 @@ export const zStringArrayToJSONString = z.preprocess(
   z.string().refine(
     (str) => {
       try {
-        const parsed = JSON.parse(str);
+        const parsed = JSON.parse(str) as unknown;
         return (
           Array.isArray(parsed) && parsed.every((v) => typeof v === "string")
         );

@@ -18,8 +18,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { CURRENT_WORKSPACE } from "@/lib/workspace-utils";
-import { Workspace } from "@/types/next-auth";
-import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { type Workspace } from "@/types/next-auth";
+import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { PAGE_URLS } from "@/lib/page-url";
 import { Skeleton } from "../ui/skeleton";
 
@@ -105,7 +105,7 @@ export function TeamSwitcher({
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Workspace
             </DropdownMenuLabel>
-            {workspaces.map((team, index) => (
+            {workspaces.map((team) => (
               <DropdownMenuItem
                 key={team.name}
                 onClick={() => switchWorkspace(team)}

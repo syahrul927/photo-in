@@ -1,5 +1,5 @@
 import { protectedProcedure } from "@/server/api/trpc";
-import { MemberViewType } from "./type";
+import { type MemberViewType } from "./type";
 import { and, eq, ne } from "drizzle-orm";
 import { invitation, membership, user } from "@/server/db/schemas";
 import { InvitationStatusType } from "@/types/invitation-status";

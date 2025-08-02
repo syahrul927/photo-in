@@ -1,6 +1,6 @@
 "use client"; // Ensure this runs only on the client side
 
-import { Role } from "@/config/permissions";
+import { type Role } from "@/config/permissions";
 import { CURRENT_WORKSPACE } from "@/lib/workspace-utils";
 import { useSession } from "next-auth/react";
 import { useMemo, useState, useEffect } from "react";

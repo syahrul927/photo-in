@@ -1,4 +1,4 @@
-import { NavigationType } from "@/components/sidebar/types";
+import { type NavigationType } from "@/components/sidebar/types";
 import { PAGE_URLS } from "./page-url";
 
 function findItem(

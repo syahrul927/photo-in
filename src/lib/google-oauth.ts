@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+ 
 import { env } from "@/env";
 import { google } from "googleapis";
 
@@ -8,11 +8,27 @@ import { google } from "googleapis";
  */
 export function getOAuthAuth() {
   try {
+    // Determine the redirect URI based on environment
+    const getRedirectUri = () => {
+      if (env.NODE_ENV === "development") {
+        return "http://localhost:3000/api/oauth2callback";
+      }
+
+      // For production, use VERCEL_URL if available, otherwise fallback to a default
+      const vercelUrl = process.env.VERCEL_URL;
+      if (vercelUrl) {
+        return `https://${vercelUrl}/api/oauth2callback`;
+      }
+
+      // Fallback - you might want to set this to your actual production domain
+      throw new Error("VERCEL_URL not found in production environment");
+    };
+
     // Create OAuth2 client with credentials from environment
     const oauth2Client = new google.auth.OAuth2(
       env.GOOGLE_CLIENT_ID,
       env.GOOGLE_CLIENT_SECRET,
-      "urn:ietf:wg:oauth:2.0:oob", // For server-side applications
+      getRedirectUri(),
     );
 
     // Set the refresh token to automatically handle token refresh

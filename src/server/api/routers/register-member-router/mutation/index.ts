@@ -3,7 +3,7 @@ import {
   registerInformationUserRequestSchema,
   validateInvitationEmailKeyRequestSchema,
 } from "./type";
-import { eq, InferSelectModel } from "drizzle-orm";
+import { eq, type InferSelectModel } from "drizzle-orm";
 import { invitation, membership, user } from "@/server/db/schemas/";
 import { TRPCError } from "@trpc/server";
 import { hashPassword } from "@/lib/password-utils";

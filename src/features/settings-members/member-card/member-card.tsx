@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { roles } from "@/lib/auth-utils";
 import { getAvatarName } from "@/lib/avatar-utils";
 import { getBaseUrl } from "@/trpc/react";
-import { Check, LucideIcon, MoreHorizontalIcon } from "lucide-react";
+import { Check, type LucideIcon, MoreHorizontalIcon } from "lucide-react";
 
 interface MemberCardProps {
   id: string;

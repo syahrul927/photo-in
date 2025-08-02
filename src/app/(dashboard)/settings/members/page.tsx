@@ -10,7 +10,7 @@ import {
 } from "@/features/settings-members";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { roles } from "@/lib/auth-utils";
-import { MemberViewType } from "@/server/api/routers/user-member-router/query/type";
+import { type MemberViewType } from "@/server/api/routers/user-member-router/query/type";
 import { api } from "@/trpc/react";
 import { Shield } from "lucide-react";
 import { useCallback } from "react";

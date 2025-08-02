@@ -12,6 +12,7 @@ export const event = sqliteTable("Event", {
   location: text("location"),
   dateEvent: numeric("dateEvent"),
   categories: text("tags").notNull().default("[]"), // Simpan sebagai JSON string
+  folderId: text("folderId").notNull(),
   targetTotalPhotos: numeric("targetTotalPhotos"),
   clientName: text("clientName"),
   status: text("status").notNull(), //"upcoming" | "in-progress" | "completed"

@@ -1,4 +1,4 @@
-import { createEventFolder } from "@/lib/drive-uploader-parallel";
+import { createEventFolder } from "@/lib/google-drive-utils";
 import { protectedProcedure } from "@/server/api/trpc";
 import { event } from "@/server/db/schemas";
 import { toISOString } from "@/server/db/transformers/database-utils";
@@ -38,6 +38,7 @@ export const upsertEvent = protectedProcedure
 
     const eventData = createInsertEventSchema({
       ...input,
+      folderId: "",
       workspaceId: currentWorkspace.workspaceId,
     });
     if (input.id) {
@@ -70,6 +71,7 @@ export const upsertEvent = protectedProcedure
       .insert(event)
       .values({
         ...eventData,
+        folderId: "",
         workspaceId: currentWorkspace.workspaceId,
         createdAt: toISOString(new Date()),
       })
@@ -84,7 +86,15 @@ export const upsertEvent = protectedProcedure
 
     // Pre-create Google Drive folder for the event
     try {
-      await createEventFolder(newEvent.id);
+      const folder = await createEventFolder(newEvent.id);
+      if (folder) {
+        await db
+          .update(event)
+          .set({
+            folderId: folder,
+          })
+          .where(eq(event.id, newEvent.id));
+      }
       console.log(`Created Google Drive folder for event: ${newEvent.id}`);
     } catch (error) {
       console.warn(

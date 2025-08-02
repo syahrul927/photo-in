@@ -1,31 +1,26 @@
 "use client";
 
+import { useSecureImage } from "@/hooks/use-secure-image";
+import { api } from "@/trpc/react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import {
   Calendar,
   Download,
-  Eye,
   Filter,
   Grid,
-  Heart,
   ImagePlus,
   LayoutGrid,
   MapPin,
-  MessageCircle,
   Share2,
   Users,
 } from "lucide-react";
 import Image, { type ImageProps } from "next/image";
 import { useEffect, useState } from "react";
-import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { useSecureImage } from "@/hooks/use-secure-image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { PhotoDialog, PhotoFile } from "@/features/gallery";
 import {
   Select,
   SelectContent,
@@ -33,31 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PhotoDialog, type PhotoFile } from "@/features/gallery";
+import { GoogleDriveUploader } from "@/features/google-drive";
 import { useParams } from "next/navigation";
-import {
-  generateDirectImageUrl,
-  generateThumbnailUrl,
-  getImageUrlFromWebContentLink,
-} from "@/lib/drive-utils";
-import { UploadModal } from "@/components/upload-modal";
-
-const event = {
-  id: 1,
-  title: "Johnson Wedding",
-  date: new Date(2024, 5, 15),
-  location: "Grand Plaza Hotel, New York",
-  status: "completed",
-  totalPhotos: 248,
-  uploadProgress: 100,
-  contributors: [
-    { name: "Bob Wilson", avatar: "/placeholder.svg" },
-    { name: "Charlie Brown", avatar: "/placeholder.svg" },
-  ],
-  type: "Wedding",
-  clientName: "Sarah & Mike Johnson",
-  description:
-    "A beautiful summer wedding celebration capturing precious moments of Sarah and Mike's special day. The event featured an outdoor ceremony and an elegant indoor reception.",
-};
 
 const SecureImage = ({
   fileId,
@@ -159,13 +132,15 @@ const ImageWithFallback = ({
         </div>
       ) : isDirectGoogleDriveUrl ? (
         // Use regular img tag for direct Google Drive URLs
-        <img
+        <Image
           src={currentSrc}
           alt={alt}
           onLoad={handleLoad}
           onError={handleError}
-          className={`h-full w-full object-cover transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
-            }`}
+          className={`h-full w-full object-cover transition-opacity duration-300 ${
+            isLoading ? "opacity-0" : "opacity-100"
+          }`}
+          fill
           crossOrigin="anonymous"
         />
       ) : (
@@ -175,8 +150,9 @@ const ImageWithFallback = ({
           alt={alt}
           onLoadingComplete={handleLoad}
           onError={handleError}
-          className={`transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"
-            }`}
+          className={`transition-opacity duration-300 ${
+            isLoading ? "opacity-0" : "opacity-100"
+          }`}
           {...props}
         />
       )}
@@ -189,7 +165,6 @@ const ImageWithFallback = ({
 export default function GalleryView() {
   const params = useParams<{ id: string }>();
   const [viewMode, setViewMode] = useState<"grid" | "masonry">("grid");
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoFile | null>(null);
   const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
 
@@ -203,7 +178,7 @@ export default function GalleryView() {
     data: photosData,
     isLoading: photosLoading,
     error: queryError,
-    refetch: refetchPhotos,
+    refetch: _refetchPhotos,
   } = api.event.getPhotosByEventId.useQuery(params?.id ?? "", {
     enabled: !!params?.id,
   });
@@ -240,14 +215,7 @@ export default function GalleryView() {
   const error = queryError?.message || null;
 
   // Get the tRPC utils for manual queries
-  const utils = api.useUtils();
 
-  // Sync photos mutation
-  const handleUploadComplete = () => {
-    // Refetch photos after upload
-    console.log("Upload completed, refetching photos...");
-    void refetchPhotos();
-  };
 
   const handlePhotoClick = (photo: PhotoFile) => {
     console.log("photo clicked");
@@ -263,14 +231,14 @@ export default function GalleryView() {
   // Create event object for UI compatibility
   const event = eventData
     ? {
-      title: eventData.name || "Untitled Event",
-      date: eventData.date || new Date(),
-      location: eventData.location || "No location specified",
-      clientName: eventData.clientName || "No client specified",
-      categories: eventData.categories || [],
-      type: "Photography Event",
-      contributors: [], // You can add this data later
-    }
+        title: eventData.name || "Untitled Event",
+        date: eventData.date || new Date(),
+        location: eventData.location || "No location specified",
+        clientName: eventData.clientName || "No client specified",
+        categories: eventData.categories || [],
+        type: "Photography Event",
+        contributors: [], // You can add this data later
+      }
     : null;
 
   const sampleLoading = () => {
@@ -369,14 +337,8 @@ export default function GalleryView() {
                   </SelectContent>
                 </Select>
               </div>
-              {params?.id ? (
-                <div className="flex gap-2">
-                  <Button onClick={() => setIsUploadModalOpen(true)}>
-                    <ImagePlus className="mr-2 h-4 w-4" />
-                    Upload Photos
-                  </Button>
-                </div>
-              ) : null}
+
+              {params?.id ? <GoogleDriveUploader eventId={params.id} /> : null}
             </div>
           </div>
         </div>
@@ -405,10 +367,11 @@ export default function GalleryView() {
             </div>
           ) : (
             <motion.div
-              className={`grid gap-4 ${viewMode === "grid"
+              className={`grid gap-4 ${
+                viewMode === "grid"
                   ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                   : "grid-cols-2 md:grid-cols-3"
-                }`}
+              }`}
             >
               {photos.map((photo, index) => (
                 <motion.div
@@ -467,16 +430,6 @@ export default function GalleryView() {
           )}
         </div>
       </div>
-
-      {/* Upload Modal */}
-      {params?.id && (
-        <UploadModal
-          isOpen={isUploadModalOpen}
-          onClose={() => setIsUploadModalOpen(false)}
-          eventId={params.id}
-          onUploadComplete={handleUploadComplete}
-        />
-      )}
 
       <PhotoDialog
         photo={selectedPhoto}

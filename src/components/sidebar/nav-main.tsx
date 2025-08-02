@@ -18,7 +18,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { NavigationType } from "./types";
+import { type NavigationType } from "./types";
 import Link from "next/link";
 import { Skeleton } from "../ui/skeleton";
 

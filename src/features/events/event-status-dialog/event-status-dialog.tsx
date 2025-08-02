@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EventStatusType } from "@/types/event-status";
+import { type EventStatusType } from "@/types/event-status";
 import { useEffect, useState } from "react";
 
 const statuses: { value: EventStatusType; label: string }[] = [
@@ -47,7 +47,7 @@ export default function EventStatusDialog({
     if (open) {
       setStatus(initialStatus);
     }
-  }, [open]);
+  }, [open, initialStatus]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

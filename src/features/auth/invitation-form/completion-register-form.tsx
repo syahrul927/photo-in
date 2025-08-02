@@ -44,7 +44,7 @@ type CompletionRegisterType = z.infer<typeof completionRegisterSchema>;
 
 export const CompletionRegisterForm = ({
   step,
-  previous,
+  previous: _previous,
 }: {
   step: number;
   previous: () => void;

@@ -1,6 +1,6 @@
 import { protectedProcedure } from "@/server/api/trpc";
 import { event, photo, user } from "@/server/db/schemas";
-import { EventStatusType } from "@/types/event-status";
+import { type EventStatusType } from "@/types/event-status";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -95,7 +95,7 @@ export const getPhotosByEventId = protectedProcedure
       title: p.title,
       description: p.description,
       url: p.url,
-      metaData: p.metaData ? JSON.parse(p.metaData) : null,
+      metaData: p.metaData ? (JSON.parse(p.metaData)) : null, // eslint-disable-line @typescript-eslint/no-unsafe-assignment
       createdAt: p.createdAt ? new Date(p.createdAt) : null,
       uploader: p.uploader,
     }));
@@ -176,6 +176,36 @@ export const getSecureImageUrl = protectedProcedure
         code: "INTERNAL_SERVER_ERROR",
         message:
           error instanceof Error ? error.message : "Failed to get secure image",
+      });
+    }
+  });
+export const getGoogleDriveAuthToken = protectedProcedure
+  .input(z.string())
+  .query(async ({ ctx, input: eventId }) => {
+    const selectedEvent = await ctx.db.query.event.findFirst({
+      where: eq(event.id, eventId),
+    });
+    if (!selectedEvent) return;
+    try {
+      const clientId = env.GOOGLE_CLIENT_ID;
+      const developerKey = env.GOOGLE_DEVELOPER_KEY;
+      const oauth = getOAuthAuth();
+      const token = (await oauth.getAccessToken()).token;
+      return {
+        clientId,
+        developerKey,
+        token,
+        folderId: selectedEvent.folderId,
+      };
+    } catch (e) {
+      console.error("Failed to get Google Drive auth token:", e);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          e instanceof Error
+            ? e.message
+            : "Failed to get Google Drive auth token",
+        cause: e,
       });
     }
   });

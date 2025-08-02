@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PAGE_URLS } from "@/lib/page-url";
-import { EventStatusType } from "@/types/event-status";
+import { type EventStatusType } from "@/types/event-status";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, MoreVertical } from "lucide-react";

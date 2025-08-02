@@ -1,8 +1,8 @@
 import React, { createContext, useContext } from "react";
 import {
-  Role,
-  Feature,
-  Permission,
+  type Role,
+  type Feature,
+  type Permission,
   rolePermissions,
 } from "../../config/permissions";
 

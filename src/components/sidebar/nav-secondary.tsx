@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { NavigationType } from "./types";
+import { type NavigationType } from "./types";
 import { Skeleton } from "../ui/skeleton";
 
 export function NavSecondary({

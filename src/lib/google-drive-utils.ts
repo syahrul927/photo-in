@@ -41,49 +41,17 @@ async function getOrCreateFolder(
   return newFolder.data.id!;
 }
 
-export async function uploadFile(
-  file: Express.Multer.File,
-  parentFolder: string,
+// New function to create folder during event creation
+export async function createEventFolder(
+  eventId: string,
   oidcToken?: string,
-): Promise<GoogleDriveFile | null> {
+): Promise<string | null> {
   try {
     // Use OAuth authentication (oidcToken parameter kept for backward compatibility)
     const auth = getOAuthAuth();
-    const drive = google.drive({ version: "v3", auth });
-
-    // Get or create the folder
-    const folderId = await getOrCreateFolder(auth, parentFolder);
-
-    const bufferStream = Readable.from(file.buffer);
-    const response = await drive.files.create({
-      media: {
-        mimeType: file.mimetype,
-        body: bufferStream,
-      },
-      requestBody: {
-        name: file.originalname,
-        parents: [folderId],
-      },
-      fields: "id, name",
-    });
-
-    // Make the file publicly accessible
-    if (response.data.id) {
-      await drive.permissions.create({
-        fileId: response.data.id,
-        requestBody: {
-          role: 'reader',
-          type: 'anyone',
-        },
-      });
-    }
-
-    return response.data as GoogleDriveFile;
+    return await getOrCreateFolder(auth, eventId);
   } catch (error) {
-    console.error("Failed to upload file to Drive:", error);
-    if (error instanceof Error && error.message.includes('x-vercel-oidc-token')) {
-      console.error("OIDC Token Error: Make sure OIDC is enabled in Vercel project settings");
-    }
+    console.error("🚨 Failed to create event folder:", error);
     return null;
   }
 }

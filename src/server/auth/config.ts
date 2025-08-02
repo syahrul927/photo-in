@@ -3,7 +3,7 @@ import { db } from "@/server/db";
 import { credentialsSchema } from "@/types/auth/schema";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { and, asc, eq } from "drizzle-orm";
-import { User, type NextAuthConfig } from "next-auth";
+import { type User, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { membership, user, workspace } from "@/server/db/schemas";
 /**
@@ -27,7 +27,7 @@ export const authConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials, _req) {
         console.log("Parsed Credentials", credentials);
         const parseResult = credentialsSchema.safeParse(credentials);
         if (!parseResult.success) {

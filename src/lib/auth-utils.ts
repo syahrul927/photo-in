@@ -1,5 +1,5 @@
-import { Role } from "@/config/permissions";
-import { LucideIcon, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { type Role } from "@/config/permissions";
+import { type LucideIcon, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 
 export const roles: { label: string; icon: LucideIcon; value: Role }[] = [
   {

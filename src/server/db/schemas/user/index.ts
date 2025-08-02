@@ -2,7 +2,6 @@ import { sql } from "drizzle-orm";
 import {
   integer,
   numeric,
-  primaryKey,
   sqliteTable,
   text,
   uniqueIndex,

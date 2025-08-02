@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "../ui/button";
-import { NavigationType } from "./types";
+import { type NavigationType } from "./types";
 
 interface ContentSidebarProps extends React.HTMLAttributes<HTMLElement> {
   items: Omit<NavigationType, "code" | "icon">[];

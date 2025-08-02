@@ -1,4 +1,4 @@
-import { Option } from "@/components/ui/multi-select";
+import { type Option } from "@/components/ui/multi-select";
 
 export const EventCategories: Option[] = [
   { value: "wedding", label: "Wedding" },

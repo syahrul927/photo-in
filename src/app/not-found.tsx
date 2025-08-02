@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camera, Home, Search } from "lucide-react";
+import { Camera, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PAGE_URLS } from "@/lib/page-url";
 

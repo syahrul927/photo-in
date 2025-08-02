@@ -1,0 +1,1 @@
+ALTER TABLE `Event` ADD `folderId` text NOT NULL;

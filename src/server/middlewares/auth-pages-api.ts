@@ -1,8 +1,8 @@
 import { getWorkspaceHeader } from "@/lib/workspace-utils";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { auth } from "@/server/auth";
-import { Workspace } from "@/types/next-auth";
-import { Session } from "next-auth";
+import { type Workspace } from "@/types/next-auth";
+import { type Session } from "next-auth";
 
 export interface AuthPagesRequest extends NextApiRequest {
   session: Session;

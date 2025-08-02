@@ -16,16 +16,17 @@ const inputInsertEventSchema = z.object({
   categories: z.array(z.string()).optional(),
   targetTotalPhotos: z.number().optional(),
   clientName: z.string().optional(),
+  folderId: z.string(),
   status: z
     .enum(["upcoming", "in-progress", "completed"])
     .optional()
     .default("upcoming"),
   workspaceId: z.string(),
 });
+
 export const createInsertEventSchema = (
   input: z.infer<typeof inputInsertEventSchema>,
 ) => {
-  console.log("input", input);
   const eventInsertSchema = createInsertSchema(event, {
     dateEvent: zDateToString.optional(),
     categories: zStringArrayToJSONString.optional(),

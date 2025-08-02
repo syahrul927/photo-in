@@ -15,7 +15,7 @@ interface BadgeListProps {
 }
 
 export function BadgeList({ categories = [], maxVisible = 3 }: BadgeListProps) {
-  const [showAll, setShowAll] = useState(false);
+  const [showAll] = useState(false);
 
   const visibleCategories = showAll
     ? categories

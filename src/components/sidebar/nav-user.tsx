@@ -19,7 +19,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getAvatarName } from "@/lib/avatar-utils";
-import { User } from "next-auth";
+import { type User } from "next-auth";
 import { signOut } from "next-auth/react";
 import { Skeleton } from "../ui/skeleton";
 
