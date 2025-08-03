@@ -1,9 +1,9 @@
 "use client";
 
 import { ImageWithFallback, SecureImage } from "@/components/ui/images";
-import { type PhotoFile } from "../photo-dialog";
-import { type ViewMode } from "../gallery-controls";
 import { motion } from "framer-motion";
+import { PhotoFile } from "./photo-dialog";
+import { ViewMode } from "./gallery-controls";
 
 interface PhotoGridProps {
   photos: PhotoFile[];
@@ -59,25 +59,14 @@ export function PhotoGrid({ photos, viewMode, onPhotoClick }: PhotoGridProps) {
             }}
           >
             <div className="relative aspect-[4/3] w-full">
-              {photo.isSecure && photo.fileId ? (
-                <SecureImage
-                  fileId={photo.fileId}
-                  alt={photo.name || `Photo ${photo.id}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  priority={index < 4}
-                />
-              ) : (
-                <ImageWithFallback
-                  src={"/placeholder.svg"}
-                  alt={photo.name || `Photo ${photo.id}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  priority={index < 4}
-                />
-              )}
+              <ImageWithFallback
+                src={photo.url}
+                alt={photo.name || `Photo ${photo.id}`}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                priority={index < 4}
+              />
             </div>
 
             {/* Photo Overlay */}

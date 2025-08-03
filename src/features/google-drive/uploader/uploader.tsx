@@ -27,7 +27,8 @@ export const GoogleDriveUploader = ({ eventId }: { eventId: string }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pickedPhotos, setPickedPhotos] = useState<PickedPhoto[]>([]);
 
-  const { data, isLoading } = api.event.getGoogleDriveAuthToken.useQuery(eventId);
+  const { data, isLoading } =
+    api.event.getGoogleDriveAuthToken.useQuery(eventId);
   const utils = api.useUtils();
 
   const handleOpenPicker = () => {
@@ -56,7 +57,7 @@ export const GoogleDriveUploader = ({ eventId }: { eventId: string }) => {
 
   const handleConfirmationSuccess = () => {
     // Refresh the photos list after successful upload
-    utils.event.getPhotosByEventId.invalidate(eventId);
+    void utils.event.getPhotosByEventId.invalidate(eventId);
   };
 
   const handleCloseConfirmation = () => {

@@ -168,7 +168,7 @@ export const createPhotos = protectedProcedure
       eventId: input.eventId,
       cloudId: file.id,
       title: file.name,
-      url: `secure://${file.id}`, // Store as secure URL format for consistent handling
+      url: file.url, // Store original Google Drive URL directly
       uploadedBy: session.user.id,
       metaData: JSON.stringify({
         mimeType: file.mimeType,

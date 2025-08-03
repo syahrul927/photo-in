@@ -50,17 +50,16 @@ export function EventGallery({ eventId }: EventGalleryProps) {
   const photos: PhotoFile[] =
     photosData?.map((photo) => {
       const metadata = photo.metaData as Record<string, unknown>;
-      // All Google Drive photos use secure:// format
-      const isSecureUrl = photo.url.startsWith("secure://");
-      const fileId = isSecureUrl ? photo.url.replace("secure://", "") : null;
+      // Use proxy API endpoint to fetch images
+      const proxyImageUrl = `/api/image/${photo.cloudId}`;
 
       return {
         id: photo.id,
         cloudId: photo.cloudId,
-        url: photo.url,
-        thumbnailUrl: photo.url,
-        isSecure: isSecureUrl,
-        fileId: fileId,
+        url: proxyImageUrl,
+        thumbnailUrl: proxyImageUrl,
+        isSecure: false,
+        fileId: null,
         fallbackUrls: [], // Not needed for secure images
         name:
           photo.title ||

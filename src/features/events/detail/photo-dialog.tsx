@@ -30,16 +30,12 @@ export interface PhotoFile {
 }
 
 interface PhotoImageProps {
-  fileId: string;
   alt: string;
   priority?: boolean;
+  src: string;
 }
 
-const ImageWithFallback = ({
-  src,
-  alt,
-  priority,
-}: PhotoImageProps & { src: string }) => {
+const ImageWithFallback = ({ src, alt, priority }: PhotoImageProps) => {
   return (
     <Image
       src={src}
@@ -99,16 +95,7 @@ export function PhotoDialog({
         <div className="flex max-h-[calc(95vh-120px)] flex-col gap-6 md:flex-row">
           <div className="min-h-0 flex-1">
             <div className="bg-muted relative h-[60vh] w-full overflow-hidden rounded-lg">
-              {photo.isSecure && photo.fileId ? (
-                <SecureImage fileId={photo.fileId} alt={photo.name} priority />
-              ) : (
-                <ImageWithFallback
-                  fileId={photo.id}
-                  src={photo.url}
-                  alt={photo.name}
-                  priority
-                />
-              )}
+              <ImageWithFallback src={photo.url} alt={photo.name} priority />
             </div>
           </div>
 
