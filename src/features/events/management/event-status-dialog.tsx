@@ -34,7 +34,7 @@ interface EventStatusDialogProps {
   isLoading?: boolean;
 }
 
-export default function EventStatusDialog({
+export function EventStatusDialog({
   initialStatus = "upcoming",
   open,
   onSubmit,

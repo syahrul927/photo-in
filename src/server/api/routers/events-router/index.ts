@@ -1,5 +1,5 @@
 import { createTRPCRouter } from "../../trpc";
-import { updateStatusEvent, upsertEvent } from "./mutation";
+import { updateStatusEvent, upsertEvent, createPhotos } from "./mutation";
 import {
   getEventByEventId,
   getEventsByWorkspace,
@@ -11,6 +11,7 @@ import {
 export const eventRouter = createTRPCRouter({
   updateStatusEvent,
   upsertEvent,
+  createPhotos,
   getEventsByWorkspace,
   getEventByEventId,
   getPhotosByEventId,

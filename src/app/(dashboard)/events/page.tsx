@@ -19,8 +19,8 @@ import {
   CreateEventButton,
   EventCard,
   EventCardSkeleton,
+  EventStatusDialog,
 } from "@/features/events";
-import EventStatusDialog from "@/features/events/event-status-dialog/event-status-dialog";
 import { type EventStatusType } from "@/types/event-status";
 import { useToast } from "@/hooks/use-toast";
 
@@ -151,16 +151,16 @@ export default function EventPage() {
       >
         {isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
-              <EventCardSkeleton key={index} index={index} />
-            ))
+            <EventCardSkeleton key={index} index={index} />
+          ))
           : filteredEvents.length == 0 && (
-              <div className="flex min-h-48 items-center justify-center md:col-span-2 lg:col-span-3">
-                <p className="text-muted-foreground text-center">
-                  No events found. Please check back later or adjust your
-                  filters.
-                </p>
-              </div>
-            )}
+            <div className="flex min-h-48 items-center justify-center md:col-span-2 lg:col-span-3">
+              <p className="text-muted-foreground text-center">
+                No events found. Please check back later or adjust your
+                filters.
+              </p>
+            </div>
+          )}
         {filteredEvents.map((event, index) => (
           <EventCard
             key={event.id}

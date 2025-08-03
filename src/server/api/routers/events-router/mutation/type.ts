@@ -18,3 +18,22 @@ export const inputUpsertEvent = z.object({
     .optional()
     .default("upcoming"),
 });
+
+export const inputCreatePhotos = z.object({
+  eventId: z.string(),
+  photos: z.array(z.object({
+    id: z.string(), // Google Drive file ID
+    name: z.string(),
+    mimeType: z.string(),
+    url: z.string(),
+    embedUrl: z.string().optional(),
+    sizeBytes: z.number().optional(),
+    lastEditedUtc: z.number().optional(),
+    description: z.string().optional(),
+    type: z.string().optional(),
+    rotation: z.number().optional(),
+    rotationDegree: z.number().optional(),
+    parentId: z.string().optional(),
+    isShared: z.boolean().optional(),
+  })),
+});

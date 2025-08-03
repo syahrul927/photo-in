@@ -1,11 +1,11 @@
 import { createEventFolder } from "@/lib/google-drive-utils";
 import { protectedProcedure } from "@/server/api/trpc";
-import { event } from "@/server/db/schemas";
+import { event, photo } from "@/server/db/schemas";
 import { toISOString } from "@/server/db/transformers/database-utils";
 import { createInsertEventSchema } from "@/server/db/transformers/event";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
-import { inputUpdateStatusEvent, inputUpsertEvent } from "./type";
+import { and, eq, inArray } from "drizzle-orm";
+import { inputUpdateStatusEvent, inputUpsertEvent, inputCreatePhotos } from "./type";
 
 export const updateStatusEvent = protectedProcedure
   .input(inputUpdateStatusEvent)
@@ -105,4 +105,96 @@ export const upsertEvent = protectedProcedure
     }
 
     return newEvent;
+  });
+
+export const createPhotos = protectedProcedure
+  .input(inputCreatePhotos)
+  .mutation(async ({ ctx, input }) => {
+    const { db, session } = ctx;
+    const { currentWorkspace } = session;
+
+    // Verify the event belongs to the current workspace
+    const selectedEvent = await db.query.event.findFirst({
+      where: and(
+        eq(event.id, input.eventId),
+        eq(event.workspaceId, currentWorkspace.workspaceId),
+      ),
+    });
+
+    if (!selectedEvent) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Event not found or access denied",
+      });
+    }
+
+    // Filter only image files based on mimeType
+    const imageFiles = input.photos.filter(photo => 
+      photo.mimeType.startsWith('image/')
+    );
+
+    if (imageFiles.length === 0) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No valid image files found",
+      });
+    }
+
+    // Check for existing photos to avoid duplicates
+    const existingPhotos = await db
+      .select({ cloudId: photo.cloudId })
+      .from(photo)
+      .where(
+        and(
+          eq(photo.eventId, input.eventId),
+          inArray(photo.cloudId, imageFiles.map(f => f.id)),
+          eq(photo.deleted, false)
+        )
+      );
+
+    const existingCloudIds = new Set(existingPhotos.map(p => p.cloudId));
+    const newPhotos = imageFiles.filter(file => !existingCloudIds.has(file.id));
+
+    if (newPhotos.length === 0) {
+      return {
+        created: 0,
+        skipped: imageFiles.length,
+        message: "All photos already exist in the event",
+      };
+    }
+
+    // Prepare photo data for insertion
+    const photoData = newPhotos.map(file => ({
+      eventId: input.eventId,
+      cloudId: file.id,
+      title: file.name,
+      url: `secure://${file.id}`, // Store as secure URL format for consistent handling
+      uploadedBy: session.user.id,
+      metaData: JSON.stringify({
+        mimeType: file.mimeType,
+        sizeBytes: file.sizeBytes,
+        lastEditedUtc: file.lastEditedUtc,
+        embedUrl: file.embedUrl,
+        rotation: file.rotation,
+        rotationDegree: file.rotationDegree,
+        parentId: file.parentId,
+        isShared: file.isShared,
+        type: file.type,
+        originalUrl: file.url, // Keep original URL in metadata
+      }),
+      description: file.description || null,
+      createdAt: toISOString(new Date()),
+    }));
+
+    // Insert new photos
+    const insertedPhotos = await db
+      .insert(photo)
+      .values(photoData)
+      .returning();
+
+    return {
+      created: insertedPhotos.length,
+      skipped: imageFiles.length - newPhotos.length,
+      message: `Successfully added ${insertedPhotos.length} photos`,
+    };
   });

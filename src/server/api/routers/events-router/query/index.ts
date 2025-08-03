@@ -103,35 +103,8 @@ export const getPhotosByEventId = protectedProcedure
 
 export const getSecureImageUrl = protectedProcedure
   .input(z.string())
-  .query(async ({ ctx: { db, session }, input: fileId }) => {
-    const { currentWorkspace } = session;
-
+  .query(async ({ input: fileId }) => {
     try {
-      // Verify the file belongs to a photo in the current workspace
-      const photoExists = await db
-        .select({
-          id: photo.id,
-          eventId: photo.eventId,
-          workspaceId: event.workspaceId,
-        })
-        .from(photo)
-        .leftJoin(event, eq(photo.eventId, event.id))
-        .where(
-          and(
-            eq(photo.cloudId, fileId),
-            eq(photo.deleted, false),
-            eq(event.workspaceId, currentWorkspace.workspaceId),
-          ),
-        )
-        .limit(1);
-
-      if (!photoExists || photoExists.length === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Photo not found or access denied",
-        });
-      }
-
       // Use OAuth authentication instead of service account
       const auth = getOAuthAuth();
       const drive = google.drive({ version: "v3", auth });

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Download } from "lucide-react";
-import { useSecureImage } from "@/hooks/use-secure-image";
+import { SecureImage } from "@/components/ui/images";
 
 export interface PhotoFile {
   id: string;
@@ -22,6 +22,11 @@ export interface PhotoFile {
   isSecure: boolean;
   fileId: string | null;
   metadata?: Record<string, unknown>;
+  uploader?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
 }
 
 interface PhotoImageProps {
@@ -29,39 +34,6 @@ interface PhotoImageProps {
   alt: string;
   priority?: boolean;
 }
-
-const SecureImage = ({ fileId, alt, priority }: PhotoImageProps) => {
-  const { dataUrl, isLoading, error } = useSecureImage(fileId);
-
-  if (isLoading) {
-    return (
-      <div className="relative h-full w-full">
-        <div className="bg-muted absolute inset-0 animate-pulse rounded-lg" />
-      </div>
-    );
-  }
-
-  if (error || !dataUrl) {
-    return (
-      <div className="relative h-full w-full">
-        <div className="bg-muted absolute inset-0 flex items-center justify-center">
-          <Download className="text-muted-foreground h-8 w-8" />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Image
-      src={dataUrl}
-      alt={alt}
-      fill
-      className="object-contain"
-      sizes="80vw"
-      priority={priority}
-    />
-  );
-};
 
 const ImageWithFallback = ({
   src,
