@@ -21,9 +21,7 @@ export function ImageWithFallback({
   const [error, setError] = useState(false);
 
   // Create array of all possible sources
-  const allSources = [src, ...fallbackUrls, "/placeholder.svg"].filter(
-    Boolean,
-  ) as string[];
+  const allSources = [src, ...fallbackUrls, "/placeholder.svg"].filter(Boolean);
   const currentSrc = allSources[currentSrcIndex] || "/placeholder.svg";
 
   useEffect(() => {

@@ -129,7 +129,7 @@ export function EventGallery({ eventId }: EventGalleryProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold">Event not found</h1>
           <p className="text-muted-foreground">
-            The event you're looking for doesn't exist.
+            The event you&apos;re looking for doesn&apos;t exist.
           </p>
         </div>
       </div>
