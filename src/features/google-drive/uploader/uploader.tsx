@@ -32,13 +32,15 @@ export const GoogleDriveUploader = ({ eventId }: { eventId: string }) => {
   const utils = api.useUtils();
 
   const handleOpenPicker = () => {
+    const eventFolderId = data?.folderId;
+    
     openPicker({
       clientId: data?.clientId ?? "",
       developerKey: data?.developerKey ?? "",
       token: data?.token ?? "",
       showUploadView: true,
-      setParentFolder: data?.folderId,
-      viewId: "DOCS",
+      setParentFolder: eventFolderId,
+      viewId: "DOCS_IMAGES",
       supportDrives: true,
       multiselect: true,
       callbackFunction: (data) => {
@@ -48,7 +50,23 @@ export const GoogleDriveUploader = ({ eventId }: { eventId: string }) => {
         }
         if (data.action === "picked") {
           console.log("User picked files:", data.docs);
-          setPickedPhotos(data.docs);
+          
+          // Client-side folder validation
+          const validFiles = data.docs.filter(photo => photo.parentId === eventFolderId);
+          const invalidFiles = data.docs.filter(photo => photo.parentId !== eventFolderId);
+          
+          if (invalidFiles.length > 0) {
+            console.warn(`${invalidFiles.length} file(s) selected from wrong folder`);
+          }
+
+          // Pass both valid and invalid files for better UX in confirmation modal
+          const enhancedPhotos = data.docs.map(photo => ({
+            ...photo,
+            isValidFolder: photo.parentId === eventFolderId,
+            expectedFolderId: eventFolderId,
+          }));
+          
+          setPickedPhotos(enhancedPhotos);
           setShowConfirmation(true);
         }
       },

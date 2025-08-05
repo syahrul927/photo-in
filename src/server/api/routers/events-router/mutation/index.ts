@@ -152,6 +152,17 @@ export const createPhotos = protectedProcedure
         )
       );
 
+    // Verify folder validation using parentId field
+    if (selectedEvent.folderId) {
+      const invalidImages = imageFiles.filter(photo => photo.parentId !== selectedEvent.folderId);
+      if (invalidImages.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST", 
+          message: `${invalidImages.length} photos are not from the event folder. Expected: ${selectedEvent.folderId}`
+        });
+      }
+    }
+
     const existingCloudIds = new Set(existingPhotos.map(p => p.cloudId));
     const newPhotos = imageFiles.filter(file => !existingCloudIds.has(file.id));
 

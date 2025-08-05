@@ -16,6 +16,7 @@ import { api } from "@/trpc/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { IconCheck, IconX, IconPhoto } from "@tabler/icons-react";
+import { ShieldCheck, ShieldAlert, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface PickedPhoto {
   id: string;
@@ -31,6 +32,8 @@ interface PickedPhoto {
   rotationDegree?: number;
   parentId?: string;
   isShared?: boolean;
+  isValidFolder?: boolean;
+  expectedFolderId?: string;
 }
 
 interface PhotoPickerConfirmationProps {
@@ -77,19 +80,28 @@ export function PhotoPickerConfirmation({
 
   // Check which photos already exist
   const existingCloudIds = new Set(existingPhotos.map(p => p.cloudId));
-  const newPhotos = imageFiles.filter(photo => !existingCloudIds.has(photo.id));
-  const existingSelectedPhotos = imageFiles.filter(photo => existingCloudIds.has(photo.id));
+  
+  // Apply folder validation
+  const validImages = imageFiles.filter(photo => photo.isValidFolder !== false);
+  const invalidImages = imageFiles.filter(photo => photo.isValidFolder === false);
+  
+  const newPhotos = validImages.filter(photo => !existingCloudIds.has(photo.id));
+  const existingSelectedPhotos = validImages.filter(photo => existingCloudIds.has(photo.id));
 
   const handleConfirm = async () => {
-    if (imageFiles.length === 0) {
-      toast.error("No valid image files selected");
+    if (newPhotos.length === 0) {
+      if (validImages.length === 0) {
+        toast.error("No valid images selected. Check for wrong folder files.");
+      } else {
+        toast.info("No new photos to add");
+      }
       return;
     }
 
     setIsSubmitting(true);
     createPhotosMutation.mutate({
       eventId,
-      photos: imageFiles,
+      photos: newPhotos, // Only send valid, new photos
     });
   };
 
@@ -115,19 +127,29 @@ export function PhotoPickerConfirmation({
         <ScrollArea className="max-h-[50vh]">
           <div className="space-y-4">
             {/* Summary */}
-            <div className="flex gap-4 text-sm">
+            <div className="flex gap-4 text-sm flex-wrap">
               <Badge variant="secondary" className="flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3" />
+                {validImages.length} Valid
+              </Badge>
+              <Badge variant="secondary" className={`flex items-center gap-1 ${newPhotos.length > 0 ? 'bg-green-100 text-green-700' : ''}`}>
                 <IconCheck className="h-3 w-3" />
                 {newPhotos.length} New
               </Badge>
+              {invalidImages.length > 0 && (
+                <Badge variant="destructive" className="flex items-center gap-1">
+                  <ShieldAlert className="h-3 w-3" />
+                  {invalidImages.length} Wrong Folder
+                </Badge>
+              )}
               {existingSelectedPhotos.length > 0 && (
                 <Badge variant="outline" className="flex items-center gap-1">
                   <IconX className="h-3 w-3" />
                   {existingSelectedPhotos.length} Already Exists
                 </Badge>
               )}
-              {pickedPhotos.length - imageFiles.length > 0 && (
-                <Badge variant="destructive" className="flex items-center gap-1">
+              {(pickedPhotos.length - imageFiles.length) > 0 && (
+                <Badge variant="destructive" className="flex items-center gap-1 bg-orange-100 text-orange-700 border-orange-300">
                   <IconX className="h-3 w-3" />
                   {pickedPhotos.length - imageFiles.length} Non-Images
                 </Badge>
@@ -182,25 +204,52 @@ export function PhotoPickerConfirmation({
             )}
 
             {/* Non-Image Files Section */}
-            {pickedPhotos.length - imageFiles.length > 0 && (
+            {/* Invalid Folder Section */}
+            {invalidImages.length > 0 && (
               <>
                 <Separator />
                 <div>
-                  <h4 className="font-medium text-red-700 dark:text-red-400 mb-2">
-                    Skipped Files ({pickedPhotos.length - imageFiles.length})
+                  <h4 className="font-medium text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4" />
+                    Wrong Folder ({invalidImages.length})
                   </h4>
                   <div className="space-y-2 border-l-2 border-red-500 pl-4">
+                    {invalidImages.map((photo) => (
+                      <div key={photo.id} className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{photo.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            File: {photo.parentId} → Expected: {photo.expectedFolderId}
+                          </p>
+                        </div>
+                        <Badge variant="destructive" className="text-xs">Wrong Folder</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Non-Image Files Section */}
+            {(pickedPhotos.length - imageFiles.length) > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="font-medium text-orange-700 dark:text-orange-400 mb-2">
+                    Skipped Files ({pickedPhotos.length - imageFiles.length})
+                  </h4>
+                  <div className="space-y-2 border-l-2 border-orange-500 pl-4">
                     {pickedPhotos
                       .filter(photo => !photo.mimeType.startsWith('image/'))
                       .map((photo) => (
-                        <div key={photo.id} className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded">
+                        <div key={photo.id} className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-950/20 rounded">
                           <div className="flex-1">
                             <p className="font-medium text-sm">{photo.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {photo.mimeType} • {formatFileSize(photo.sizeBytes)}
                             </p>
                           </div>
-                          <Badge variant="destructive" className="text-xs">Not Image</Badge>
+                          <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700">Not Image</Badge>
                         </div>
                       ))}
                   </div>
