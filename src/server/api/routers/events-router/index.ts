@@ -4,8 +4,12 @@ import {
   getEventByEventId,
   getEventsByWorkspace,
   getGoogleDriveAuthToken,
+  getOverviewStats,
   getPhotosByEventId,
+  getRecentEvents,
+  getRecentPhotos,
   getSecureImageUrl,
+  getUpcomingEvents,
 } from "./query";
 
 export const eventRouter = createTRPCRouter({
@@ -17,4 +21,8 @@ export const eventRouter = createTRPCRouter({
   getPhotosByEventId,
   getSecureImageUrl,
   getGoogleDriveAuthToken,
+  getOverviewStats,
+  getRecentEvents,
+  getRecentPhotos,
+  getUpcomingEvents,
 });
