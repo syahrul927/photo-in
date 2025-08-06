@@ -35,7 +35,7 @@ export async function GET(
       responseType: "stream",
     });
 
-    const headers = fileResponse.headers;
+    const headers = fileResponse.headers as Record<string, string>;
     const contentType = headers["content-type"] || "image/jpeg";
 
     return new Response(fileResponse.data as unknown as ReadableStream, {

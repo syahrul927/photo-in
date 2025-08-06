@@ -22,6 +22,7 @@ import { type Workspace } from "@/types/next-auth";
 import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { PAGE_URLS } from "@/lib/page-url";
 import { Skeleton } from "../ui/skeleton";
+import { CreateWorkspaceModal } from "./create-workspace-modal";
 
 export function TeamSwitcher({
   workspaces,
@@ -121,14 +122,23 @@ export function TeamSwitcher({
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <div className="bg-background flex size-6 items-center justify-center rounded-md border">
-                <Plus className="size-4" />
-              </div>
-              <div className="text-muted-foreground font-medium">
-                Add Workspace
-              </div>
-            </DropdownMenuItem>
+            {activeWorkspace?.role === "owner" && (
+              <CreateWorkspaceModal>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                  }}
+                  className="gap-2 p-2"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Plus className="size-4" />
+                    <div className="text-muted-foreground font-medium">
+                      Add Workspace
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              </CreateWorkspaceModal>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

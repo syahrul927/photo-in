@@ -101,7 +101,7 @@ const events = [
   },
 ];
 
-const categories = [
+const _categories = [
   "All",
   "Wedding",
   "Portrait",

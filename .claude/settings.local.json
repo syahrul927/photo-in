@@ -5,7 +5,8 @@
       "Bash(yarn add:*)",
       "Bash(yarn build)",
       "Bash(timeout:*)",
-      "Bash(yarn build:*)"
+      "Bash(yarn build:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

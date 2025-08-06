@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.8.0",
-    "@hookform/resolvers": "^5.0.1",
+    "@hookform/resolvers": "3.3.4",
     "@libsql/client": "^0.15.2",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -88,7 +88,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^19.1.0",
     "react-google-drive-picker": "^1.2.2",
-    "react-hook-form": "^7.55.0",
+    "react-hook-form": "^7.62.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
     "server-only": "^0.0.1",

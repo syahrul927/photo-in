@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Download, Share2, Heart, Grid3X3 } from "lucide-react";
 
@@ -20,7 +19,8 @@ const photos = Array.from({ length: 247 }, (_, i) => ({
   aspect: i % 3 === 0 ? "aspect-[4/5]" : i % 2 === 0 ? "aspect-square" : "aspect-[3/4]"
 }));
 
-export default function EventDetailPage({ params }: { params: { id: string } }) {
+export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <div className="min-h-screen">
       {/* Event Header */}
@@ -84,7 +84,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1 md:gap-2">
             {photos.slice(0, 50).map((photo) => (
-              <Link key={photo.id} href={`/public/photos/${photo.id}?event=${params.id}`}>
+              <Link key={photo.id} href={`/public/photos/${photo.id}?event=${id}`}>
                 <div className="group cursor-pointer">
                   <div className={`${photo.aspect} bg-gray-200 group-hover:opacity-90 transition-opacity rounded-sm`} />
                 </div>

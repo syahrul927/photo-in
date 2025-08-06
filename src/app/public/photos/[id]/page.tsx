@@ -17,7 +17,8 @@ const photoData = {
   settings: "f/1.8 • 1/250 • ISO 100"
 };
 
-export default function PhotoDetailPage({ params }: { params: { id: string } }) {
+export default async function PhotoDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; // eslint-disable-line @typescript-eslint/no-unused-vars
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}

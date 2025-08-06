@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Instagram, Mail, MapPin, Phone, Camera, ChevronDown, Sparkles, Heart, Star } from "lucide-react";
-import Image from "next/image";
 
 export default function PublicGalleryPage() {
   const galleryItems = [
@@ -73,7 +72,7 @@ export default function PublicGalleryPage() {
           
           <h1 className="text-5xl md:text-7xl font-bold text-stone-900 mb-6 leading-tight">
             <span className="bg-gradient-to-r from-stone-800 to-stone-600 bg-clip-text text-transparent">
-              Capture Life's
+              Capture Life&apos;s
             </span>
             <br />
             <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
@@ -200,7 +199,7 @@ export default function PublicGalleryPage() {
               Ready to Capture Your Special Moments?
             </h2>
             <p className="text-xl text-stone-600 mb-8 max-w-2xl mx-auto">
-              Let's create something beautiful together. Every moment deserves to be remembered professionally.
+              Let&apos;s create something beautiful together. Every moment deserves to be remembered professionally.
             </p>
             <Button size="lg" className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-lg px-8 py-6 rounded-full">
               Start Your Journey
@@ -217,7 +216,7 @@ export default function PublicGalleryPage() {
               <span className="text-amber-600 font-semibold text-sm uppercase tracking-wider">Get In Touch</span>
               <h2 className="text-4xl font-bold text-stone-900 mt-2 mb-6">Ready When You Are</h2>
               <p className="text-xl text-stone-600 mb-8">
-                Let's discuss how we can bring your vision to life. Every project starts with a conversation.
+                Let&apos;s discuss how we can bring your vision to life. Every project starts with a conversation.
               </p>
               
               <div className="space-y-6">
