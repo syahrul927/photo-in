@@ -64,6 +64,27 @@
       "when": 1754137016262,
       "tag": "0008_safe_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1755449422432,
+      "tag": "0009_steep_zombie",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1755450974206,
+      "tag": "0010_gorgeous_valeria_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1755454853248,
+      "tag": "0011_real_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

@@ -1,18 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import { env } from "@/env";
+import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import { Readable } from "stream";
-import { getOAuthAuth } from "./google-oauth";
+import { getOAuth2Client } from "./google-service-account";
 
 const UPLOAD_FOLDER_ID = env.GOOGLE_DRIVE_FOLDER;
 
-interface GoogleDriveFile {
-  id: string;
-  name: string;
-}
-
 async function getOrCreateFolder(
-  auth: any,
+  auth: OAuth2Client,
   folderName: string,
 ): Promise<string> {
   const start = Date.now();
@@ -44,11 +39,10 @@ async function getOrCreateFolder(
 // New function to create folder during event creation
 export async function createEventFolder(
   eventId: string,
-  oidcToken?: string,
 ): Promise<string | null> {
   try {
     // Use OAuth authentication (oidcToken parameter kept for backward compatibility)
-    const auth = getOAuthAuth();
+    const auth = await getOAuth2Client();
     return await getOrCreateFolder(auth, eventId);
   } catch (error) {
     console.error("🚨 Failed to create event folder:", error);

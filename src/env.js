@@ -19,9 +19,8 @@ export const env = createEnv({
     GOOGLE_DRIVE_FOLDER: z.string(),
     // OAuth credentials for Google Drive API
     GOOGLE_CLIENT_ID: z.string(),
-    GOOGLE_CLIENT_SECRET: z.string(),
-    GOOGLE_REFRESH_TOKEN: z.string(),
     GOOGLE_DEVELOPER_KEY: z.string(),
+    GOOGLE_SERVICE_ACCOUNT_KEY: z.string(),
   },
 
   /**
@@ -45,9 +44,8 @@ export const env = createEnv({
     GOOGLE_DRIVE_FOLDER: process.env.GOOGLE_DRIVE_FOLDER,
     // OAuth credentials for Google Drive API
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
     GOOGLE_DEVELOPER_KEY: process.env.GOOGLE_DEVELOPER_KEY,
+    GOOGLE_SERVICE_ACCOUNT_KEY: process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

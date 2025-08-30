@@ -1,12 +1,12 @@
+import { env } from "@/env";
+import { getAccessToken, getOAuth2Client } from "@/lib/google-service-account";
 import { protectedProcedure } from "@/server/api/trpc";
 import { event, photo, user } from "@/server/db/schemas";
 import { type EventStatusType } from "@/types/event-status";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { env } from "@/env";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { google } from "googleapis";
-import { getOAuthAuth } from "@/lib/google-oauth";
+import { z } from "zod";
 
 export const getEventsByWorkspace = protectedProcedure.query(
   async ({ ctx }) => {
@@ -95,7 +95,7 @@ export const getPhotosByEventId = protectedProcedure
       title: p.title,
       description: p.description,
       url: p.url,
-      metaData: p.metaData ? (JSON.parse(p.metaData)) : null, // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+      metaData: p.metaData ? JSON.parse(p.metaData) : null, // eslint-disable-line @typescript-eslint/no-unsafe-assignment
       createdAt: p.createdAt ? new Date(p.createdAt) : null,
       uploader: p.uploader,
     }));
@@ -106,7 +106,7 @@ export const getSecureImageUrl = protectedProcedure
   .query(async ({ input: fileId }) => {
     try {
       // Use OAuth authentication to download file directly
-      const auth = getOAuthAuth();
+      const auth = await getOAuth2Client();
       const drive = google.drive({ version: "v3", auth });
 
       // Download file content directly (skip validation since we trust our database)
@@ -149,8 +149,7 @@ export const getGoogleDriveAuthToken = protectedProcedure
     try {
       const clientId = env.GOOGLE_CLIENT_ID;
       const developerKey = env.GOOGLE_DEVELOPER_KEY;
-      const oauth = getOAuthAuth();
-      const token = (await oauth.getAccessToken()).token;
+      const token = await getAccessToken();
       return {
         clientId,
         developerKey,
@@ -170,141 +169,164 @@ export const getGoogleDriveAuthToken = protectedProcedure
     }
   });
 
-export const getOverviewStats = protectedProcedure.query(
-  async ({ ctx }) => {
-    const { db, session } = ctx;
-    const { currentWorkspace } = session;
+export const getOverviewStats = protectedProcedure.query(async ({ ctx }) => {
+  const { db, session } = ctx;
+  const { currentWorkspace } = session;
 
-    const [totalEventsResult, totalPhotosResult, inProgressEventsResult, upcomingEventsResult] = await Promise.all([
-      db.select({ count: sql<number>`count(*)` }).from(event).where(eq(event.workspaceId, currentWorkspace.workspaceId)),
-      db.select({ count: sql<number>`count(*)` })
-        .from(photo)
-        .innerJoin(event, eq(photo.eventId, event.id))
-        .where(and(eq(event.workspaceId, currentWorkspace.workspaceId), eq(photo.deleted, false))),
-      db.select({ count: sql<number>`count(*)` }).from(event).where(and(
-        eq(event.workspaceId, currentWorkspace.workspaceId),
-        eq(event.status, "in-progress")
-      )),
-      db.select({ count: sql<number>`count(*)` }).from(event).where(and(
-        eq(event.workspaceId, currentWorkspace.workspaceId),
-        eq(event.status, "upcoming")
-      )),
-    ]);
-
-    return {
-      totalEvents: Number(totalEventsResult[0]?.count || 0),
-      totalPhotos: Number(totalPhotosResult[0]?.count || 0),
-      inProgressEvents: Number(inProgressEventsResult[0]?.count || 0),
-      upcomingEvents: Number(upcomingEventsResult[0]?.count || 0),
-    };
-  }
-);
-
-export const getRecentEvents = protectedProcedure.query(
-  async ({ ctx }) => {
-    const { db, session } = ctx;
-    const { currentWorkspace } = session;
-
-    const events = await db
-      .select({
-        id: event.id,
-        name: event.name,
-        clientName: event.clientName,
-        location: event.location,
-        dateEvent: event.dateEvent,
-        status: event.status,
-        categories: event.categories,
-        targetTotalPhotos: event.targetTotalPhotos,
-        photoCount: sql<number>`count(${photo.id})`,
-      })
+  const [
+    totalEventsResult,
+    totalPhotosResult,
+    inProgressEventsResult,
+    upcomingEventsResult,
+  ] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
       .from(event)
-      .leftJoin(photo, and(eq(event.id, photo.eventId), eq(photo.deleted, false)))
-      .where(eq(event.workspaceId, currentWorkspace.workspaceId))
-      .groupBy(
-        event.id,
-        event.name,
-        event.clientName,
-        event.location,
-        event.dateEvent,
-        event.status,
-        event.categories,
-        event.targetTotalPhotos,
-      )
-      .orderBy(desc(event.createdAt))
-      .limit(5);
-
-    return events.map((e) => ({
-      id: e.id,
-      name: e.name,
-      clientName: e.clientName,
-      location: e.location,
-      dateEvent: e.dateEvent ? new Date(e.dateEvent) : null,
-      status: e.status,
-      categories: JSON.parse(e.categories) as string[],
-      targetTotalPhotos: e.targetTotalPhotos ? Number(e.targetTotalPhotos) : null,
-      photoCount: Number(e.photoCount || 0),
-    }));
-  }
-);
-
-export const getUpcomingEvents = protectedProcedure.query(
-  async ({ ctx }) => {
-    const { db, session } = ctx;
-    const { currentWorkspace } = session;
-
-    const events = await db
-      .select({
-        id: event.id,
-        name: event.name,
-        location: event.location,
-        dateEvent: event.dateEvent,
-      })
-      .from(event)
-      .where(and(
-        eq(event.workspaceId, currentWorkspace.workspaceId),
-        eq(event.status, "upcoming")
-      ))
-      .orderBy(event.dateEvent)
-      .limit(5);
-
-    return events.map((e) => ({
-      id: e.id,
-      name: e.name,
-      location: e.location,
-      dateEvent: e.dateEvent ? new Date(e.dateEvent) : null,
-    }));
-  }
-);
-
-export const getRecentPhotos = protectedProcedure.query(
-  async ({ ctx }) => {
-    const { db, session } = ctx;
-    const { currentWorkspace } = session;
-
-    const photos = await db
-      .select({
-        id: photo.id,
-        cloudId: photo.cloudId,
-        title: photo.title,
-        eventId: event.id,
-        eventName: event.name,
-        createdAt: photo.createdAt,
-      })
+      .where(eq(event.workspaceId, currentWorkspace.workspaceId)),
+    db
+      .select({ count: sql<number>`count(*)` })
       .from(photo)
       .innerJoin(event, eq(photo.eventId, event.id))
-      .where(and(eq(event.workspaceId, currentWorkspace.workspaceId), eq(photo.deleted, false)))
-      .orderBy(desc(photo.createdAt))
-      .limit(12);
+      .where(
+        and(
+          eq(event.workspaceId, currentWorkspace.workspaceId),
+          eq(photo.deleted, false),
+        ),
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(event)
+      .where(
+        and(
+          eq(event.workspaceId, currentWorkspace.workspaceId),
+          eq(event.status, "in-progress"),
+        ),
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(event)
+      .where(
+        and(
+          eq(event.workspaceId, currentWorkspace.workspaceId),
+          eq(event.status, "upcoming"),
+        ),
+      ),
+  ]);
 
-    return photos.map((p) => ({
-      id: p.id,
-      cloudId: p.cloudId,
-      title: p.title,
-      eventId: p.eventId,
-      eventName: p.eventName,
-      createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
-    }));
-  }
-);
+  return {
+    totalEvents: Number(totalEventsResult[0]?.count || 0),
+    totalPhotos: Number(totalPhotosResult[0]?.count || 0),
+    inProgressEvents: Number(inProgressEventsResult[0]?.count || 0),
+    upcomingEvents: Number(upcomingEventsResult[0]?.count || 0),
+  };
+});
+
+export const getRecentEvents = protectedProcedure.query(async ({ ctx }) => {
+  const { db, session } = ctx;
+  const { currentWorkspace } = session;
+
+  const events = await db
+    .select({
+      id: event.id,
+      name: event.name,
+      clientName: event.clientName,
+      location: event.location,
+      dateEvent: event.dateEvent,
+      status: event.status,
+      categories: event.categories,
+      targetTotalPhotos: event.targetTotalPhotos,
+      photoCount: sql<number>`count(${photo.id})`,
+    })
+    .from(event)
+    .leftJoin(photo, and(eq(event.id, photo.eventId), eq(photo.deleted, false)))
+    .where(eq(event.workspaceId, currentWorkspace.workspaceId))
+    .groupBy(
+      event.id,
+      event.name,
+      event.clientName,
+      event.location,
+      event.dateEvent,
+      event.status,
+      event.categories,
+      event.targetTotalPhotos,
+    )
+    .orderBy(desc(event.createdAt))
+    .limit(5);
+
+  return events.map((e) => ({
+    id: e.id,
+    name: e.name,
+    clientName: e.clientName,
+    location: e.location,
+    dateEvent: e.dateEvent ? new Date(e.dateEvent) : null,
+    status: e.status,
+    categories: JSON.parse(e.categories) as string[],
+    targetTotalPhotos: e.targetTotalPhotos ? Number(e.targetTotalPhotos) : null,
+    photoCount: Number(e.photoCount || 0),
+  }));
+});
+
+export const getUpcomingEvents = protectedProcedure.query(async ({ ctx }) => {
+  const { db, session } = ctx;
+  const { currentWorkspace } = session;
+
+  const events = await db
+    .select({
+      id: event.id,
+      name: event.name,
+      location: event.location,
+      dateEvent: event.dateEvent,
+    })
+    .from(event)
+    .where(
+      and(
+        eq(event.workspaceId, currentWorkspace.workspaceId),
+        eq(event.status, "upcoming"),
+      ),
+    )
+    .orderBy(event.dateEvent)
+    .limit(5);
+
+  return events.map((e) => ({
+    id: e.id,
+    name: e.name,
+    location: e.location,
+    dateEvent: e.dateEvent ? new Date(e.dateEvent) : null,
+  }));
+});
+
+export const getRecentPhotos = protectedProcedure.query(async ({ ctx }) => {
+  const { db, session } = ctx;
+  const { currentWorkspace } = session;
+
+  const photos = await db
+    .select({
+      id: photo.id,
+      cloudId: photo.cloudId,
+      title: photo.title,
+      eventId: event.id,
+      eventName: event.name,
+      createdAt: photo.createdAt,
+    })
+    .from(photo)
+    .innerJoin(event, eq(photo.eventId, event.id))
+    .where(
+      and(
+        eq(event.workspaceId, currentWorkspace.workspaceId),
+        eq(photo.deleted, false),
+      ),
+    )
+    .orderBy(desc(photo.createdAt))
+    .limit(12);
+
+  return photos.map((p) => ({
+    id: p.id,
+    cloudId: p.cloudId,
+    title: p.title,
+    eventId: p.eventId,
+    eventName: p.eventName,
+    createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
+  }));
+});
 
 // Add the SQL import
